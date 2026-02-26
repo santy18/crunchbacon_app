@@ -6,7 +6,8 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(ffmpeg:*)",
-      "Bash(brew install:*)"
+      "Bash(brew install:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }

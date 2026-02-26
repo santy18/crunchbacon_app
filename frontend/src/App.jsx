@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import WaveformEditor from './WaveformEditor'
 import './App.css'
 
 function App() {
@@ -310,10 +311,7 @@ function App() {
 
       {audioUrl && (
         <div className="result">
-          <audio controls src={audioUrl} />
-          <button className="download-btn" onClick={() => handleDownload(audioUrl, 'output.wav')}>
-            Download WAV
-          </button>
+          <WaveformEditor audioUrl={audioUrl} />
         </div>
       )}
 
