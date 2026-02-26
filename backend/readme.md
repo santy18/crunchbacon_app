@@ -3,7 +3,6 @@
 conda create -n qwen-tts python=3.11 -y
 conda activate qwen-tts
 
-
 pip install mlx mlx-audio numpy soundfile fastapi uvicorn pydantic huggingface_hub
 ```
 

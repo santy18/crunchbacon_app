@@ -5,6 +5,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      '/ws/stream': {
+        target: 'ws://localhost:8000',
+        ws: true,
+      },
       '/generate-voiceover': 'http://localhost:8000',
       '/generate': 'http://localhost:8000',
       '/voices': 'http://localhost:8000',
