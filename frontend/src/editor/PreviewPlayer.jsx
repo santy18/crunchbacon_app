@@ -188,6 +188,26 @@ export default function PreviewPlayer() {
     }
   }, [hasContent, ui.isPlaying, dispatch])
 
+  // Compute timeline end (furthest clip edge)
+  const timelineEnd = useMemo(() => {
+    if (project.clips.length === 0) return 0
+    return Math.max(...project.clips.map((c) => c.startTime + c.duration))
+  }, [project.clips])
+
+  const goToStart = () => {
+    dispatch({ type: 'SET_PLAYHEAD', time: 0 })
+    dispatch({ type: 'SET_PLAYING', value: false })
+  }
+
+  const goToEnd = () => {
+    dispatch({ type: 'SET_PLAYHEAD', time: timelineEnd })
+    dispatch({ type: 'SET_PLAYING', value: false })
+  }
+
+  const togglePlay = () => {
+    dispatch({ type: 'SET_PLAYING', value: !ui.isPlaying })
+  }
+
   return (
     <div className="editor-preview">
       {activeVideoMedia ? (
@@ -197,8 +217,17 @@ export default function PreviewPlayer() {
           {activeAudioClips.length > 0 ? 'Audio only — press Space to play' : 'No clip at playhead'}
         </span>
       )}
-      <div className="editor-preview-timecode">
-        {formatTimecode(ui.playheadTime)}
+      <div className="editor-transport">
+        <button className="transport-btn" onClick={goToStart} title="Go to beginning">
+          &#9198;
+        </button>
+        <button className="transport-btn transport-play" onClick={togglePlay} title={ui.isPlaying ? 'Pause' : 'Play'}>
+          {ui.isPlaying ? '\u23F8' : '\u25B6'}
+        </button>
+        <button className="transport-btn" onClick={goToEnd} title="Go to end">
+          &#9197;
+        </button>
+        <span className="transport-timecode">{formatTimecode(ui.playheadTime)}</span>
       </div>
     </div>
   )

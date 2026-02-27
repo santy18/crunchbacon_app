@@ -295,26 +295,70 @@
 
 .editor-preview video {
   max-width: 100%;
-  max-height: calc(100% - 28px);
+  max-height: calc(100% - 40px);
   object-fit: contain;
+  flex: 1;
+  min-height: 0;
 }
 
 .editor-preview-empty {
   color: #555;
   font-size: 14px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.editor-preview-timecode {
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
+/* --- Transport Controls --- */
+.editor-transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 12px;
+  background: #1a1a2e;
+  border-top: 1px solid #333;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.transport-btn {
+  background: #333;
+  border: none;
+  color: #eee;
+  font-size: 16px;
+  width: 32px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.transport-btn:hover {
+  background: #444;
+}
+
+.transport-btn.transport-play {
+  background: #646cff;
+  width: 40px;
+}
+
+.transport-btn.transport-play:hover {
+  background: #535bf2;
+}
+
+.transport-timecode {
   font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
   font-size: 12px;
   color: #aaa;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 2px 8px;
-  border-radius: 3px;
+  margin-left: 8px;
+  min-width: 60px;
 }
 
 /* --- Inspector (right) --- */
