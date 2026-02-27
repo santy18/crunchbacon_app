@@ -1,14 +1,14 @@
 import { NavLink } from 'react-router-dom'
 
 const links = [
-  { to: '/', label: 'Home', icon: '\u2302' },
-  { to: '/voices', label: 'Voices', icon: '\uD83C\uDFA4' },
-  { to: '/projects', label: 'Projects', icon: '\uD83D\uDCC1' },
-  { to: '/streaming', label: 'Streaming', icon: '\uD83C\uDF99\uFE0F' },
-  { to: '/transcriptions', label: 'Transcriptions', icon: '\u{1F4DD}' },
-  { to: '/audio-files', label: 'Audio Files', icon: '\uD83D\uDD0A' },
-  { to: '/testing', label: 'Testing', icon: '\u26A1' },
-  { to: '/settings', label: 'Settings', icon: '\u2699\uFE0F' },
+  { to: '/app', label: 'Home', icon: '\u2302' },
+  { to: '/app/voices', label: 'Voices', icon: '\uD83C\uDFA4' },
+  { to: '/app/projects', label: 'Projects', icon: '\uD83D\uDCC1' },
+  { to: '/app/streaming', label: 'Streaming', icon: '\uD83C\uDF99\uFE0F' },
+  { to: '/app/transcriptions', label: 'Transcriptions', icon: '\u{1F4DD}' },
+  { to: '/app/audio-files', label: 'Audio Files', icon: '\uD83D\uDD0A' },
+  { to: '/app/testing', label: 'Testing', icon: '\u26A1' },
+  { to: '/app/settings', label: 'Settings', icon: '\u2699\uFE0F' },
 ]
 
 export default function Sidebar() {
@@ -20,7 +20,7 @@ export default function Sidebar() {
           <li key={to}>
             <NavLink
               to={to}
-              end={to === '/'}
+              end={to === '/app'}
               className={({ isActive }) =>
                 'sidebar-link' + (isActive ? ' active' : '')
               }

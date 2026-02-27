@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
+import LandingPage from './pages/LandingPage'
 import Home from './pages/Home'
 import Voices from './pages/Voices'
 import Projects from './pages/Projects'
@@ -10,7 +11,7 @@ import Transcriptions from './pages/Transcriptions'
 import AudioFiles from './pages/AudioFiles'
 import './App.css'
 
-export default function App() {
+function AppLayout() {
   return (
     <div className="app-shell">
       <Sidebar />
@@ -27,5 +28,14 @@ export default function App() {
         </Routes>
       </main>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/app/*" element={<AppLayout />} />
+    </Routes>
   )
 }
