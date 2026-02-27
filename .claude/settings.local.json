@@ -12,7 +12,11 @@
       "Bash(kill %1:*)",
       "Bash(lsof:*)",
       "Bash(/Users/santiagogil/miniconda3/envs/qwen-tts/bin/python:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(timeout 15 python:*)",
+      "Bash(sqlite3:*)"
     ]
   }
 }

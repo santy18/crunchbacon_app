@@ -41,6 +41,9 @@ Thumbs.db
 *.njsproj
 *.sln
 
+# Database
+backend/data/
+
 # Misc
 .env
 .env.*
