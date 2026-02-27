@@ -9,6 +9,8 @@ export default defineConfig({
         target: 'ws://localhost:8000',
         ws: true,
       },
+      '/export-project': 'http://localhost:8000',
+      '/export-edited-video': 'http://localhost:8000',
       '/generate-voiceover': 'http://localhost:8000',
       '/generate': 'http://localhost:8000',
       '/voices': 'http://localhost:8000',

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import WaveformEditor from './WaveformEditor'
+import VideoEditor from './VideoEditor'
+import Editor from './editor/Editor'
 import './App.css'
 
 function App() {
+  const [editorOpen, setEditorOpen] = useState(false)
   const [text, setText] = useState('')
   const [voices, setVoices] = useState([])
   const [selectedVoice, setSelectedVoice] = useState('')
@@ -10,7 +13,6 @@ function App() {
   const [videoFile, setVideoFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [audioUrl, setAudioUrl] = useState(null)
-  const [videoUrl, setVideoUrl] = useState(null)
   const [error, setError] = useState(null)
 
   // Streaming state
@@ -53,59 +55,30 @@ function App() {
     setLoading(true)
     setError(null)
     if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null) }
-    if (videoUrl) { URL.revokeObjectURL(videoUrl); setVideoUrl(null) }
 
     try {
-      if (videoFile) {
-        const formData = new FormData()
-        formData.append('video', videoFile)
-        formData.append('text', text.trim())
-        formData.append('voice', selectedVoice)
-        if (refText.trim()) formData.append('ref_text', refText.trim())
+      const res = await fetch('/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: text.trim(),
+          voice: selectedVoice,
+          ref_text: refText.trim() || undefined,
+        }),
+      })
 
-        const res = await fetch('/generate-voiceover', {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (!res.ok) {
-          const detail = await res.json().catch(() => null)
-          throw new Error(detail?.detail || `Server error ${res.status}`)
-        }
-
-        const blob = await res.blob()
-        setVideoUrl(URL.createObjectURL(blob))
-      } else {
-        const res = await fetch('/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            text: text.trim(),
-            voice: selectedVoice,
-            ref_text: refText.trim() || undefined,
-          }),
-        })
-
-        if (!res.ok) {
-          const detail = await res.json().catch(() => null)
-          throw new Error(detail?.detail || `Server error ${res.status}`)
-        }
-
-        const blob = await res.blob()
-        setAudioUrl(URL.createObjectURL(blob))
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null)
+        throw new Error(detail?.detail || `Server error ${res.status}`)
       }
+
+      const blob = await res.blob()
+      setAudioUrl(URL.createObjectURL(blob))
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleDownload = (url, filename) => {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
   }
 
   // --- Real-time streaming ---
@@ -237,8 +210,13 @@ function App() {
   // --- Render ---
 
   return (
+    <>
+    {editorOpen && <Editor onClose={() => setEditorOpen(false)} />}
     <div className="container">
       <h1>Qwen3 TTS</h1>
+      <button className="generate-btn" onClick={() => setEditorOpen(true)} style={{ background: '#2ea043' }}>
+        Open Video Editor
+      </button>
 
       <label>
         Voice
@@ -278,17 +256,13 @@ function App() {
           <input
             type="file"
             accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
-            onChange={(e) => {
-              setVideoFile(e.target.files[0] || null)
-              if (videoUrl) { URL.revokeObjectURL(videoUrl); setVideoUrl(null) }
-            }}
+            onChange={(e) => setVideoFile(e.target.files[0] || null)}
           />
           {videoFile && (
             <button
               className="remove-btn"
               onClick={() => {
                 setVideoFile(null)
-                if (videoUrl) { URL.revokeObjectURL(videoUrl); setVideoUrl(null) }
                 const input = document.querySelector('input[type="file"]')
                 if (input) input.value = ''
               }}
@@ -304,25 +278,20 @@ function App() {
         onClick={handleGenerate}
         disabled={loading || !text.trim() || !selectedVoice}
       >
-        {loading ? 'Generating...' : videoFile ? 'Generate Voiceover' : 'Generate Audio'}
+        {loading ? 'Generating...' : 'Generate Audio'}
       </button>
 
       {error && <p className="error">{error}</p>}
 
-      {audioUrl && (
+      {videoFile ? (
+        <div className="result">
+          <VideoEditor videoFile={videoFile} audioUrl={audioUrl} />
+        </div>
+      ) : audioUrl ? (
         <div className="result">
           <WaveformEditor audioUrl={audioUrl} />
         </div>
-      )}
-
-      {videoUrl && (
-        <div className="result">
-          <video controls src={videoUrl} />
-          <button className="download-btn" onClick={() => handleDownload(videoUrl, 'voiceover.mp4')}>
-            Download Video
-          </button>
-        </div>
-      )}
+      ) : null}
 
       {/* ---- Real-Time Streaming ---- */}
       <hr className="divider" />
@@ -364,6 +333,7 @@ function App() {
         </div>
       )}
     </div>
+    </>
   )
 }
 
