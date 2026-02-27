@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { EditorProvider, useProject, useUI, useDispatch, removeClip, rippleDeleteClip, splitClip } from './EditorContext'
+import { saveProject } from './projectApi'
 import MediaBin from './MediaBin'
 import PreviewPlayer from './PreviewPlayer'
 import Timeline from './Timeline'
@@ -7,15 +8,58 @@ import Inspector from './Inspector'
 import { exportProject } from './exportProject'
 import './Editor.css'
 
-function EditorShell({ onClose }) {
+// Serialize project for comparison (strips non-serializable File/objectUrl)
+function serializeForCompare(project) {
+  return JSON.stringify({
+    tracks: project.tracks,
+    clips: project.clips,
+    mediaBin: project.mediaBin.map(({ file, objectUrl, ...rest }) => rest),
+  })
+}
+
+function EditorShell({ onClose, projectId }) {
   const project = useProject()
   const ui = useUI()
   const dispatch = useDispatch()
+
+  // Save state
+  const [saving, setSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState(null)
+  const lastSavedRef = useRef(serializeForCompare(project))
 
   // Find all clips at playhead (for split-all)
   const clipsAtPlayhead = project.clips.filter(
     (c) => ui.playheadTime > c.startTime && ui.playheadTime < c.startTime + c.duration
   )
+
+  const handleSave = useCallback(async () => {
+    if (!projectId || saving) return
+    setSaving(true)
+    setSaveStatus(null)
+    try {
+      await saveProject(projectId, project)
+      lastSavedRef.current = serializeForCompare(project)
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus(null), 2000)
+    } catch (e) {
+      setSaveStatus('error')
+      console.error('Save failed:', e)
+    } finally {
+      setSaving(false)
+    }
+  }, [projectId, project, saving])
+
+  const handleClose = useCallback(() => {
+    const currentState = serializeForCompare(project)
+    if (currentState !== lastSavedRef.current) {
+      if (!window.confirm('You have unsaved changes. Close anyway?')) return
+    }
+    // Revoke objectUrls to free memory
+    project.mediaBin.forEach((item) => {
+      if (item.objectUrl) URL.revokeObjectURL(item.objectUrl)
+    })
+    onClose()
+  }, [project, onClose])
 
   const handleSplit = useCallback(() => {
     if (ui.selectedClipId) {
@@ -56,7 +100,10 @@ function EditorShell({ onClose }) {
       dispatch({ type: 'SET_PLAYING', value: !ui.isPlaying })
     }
 
-    if (e.key === 's' && !isMeta) {
+    if (isMeta && e.key === 's') {
+      e.preventDefault()
+      handleSave()
+    } else if (e.key === 's' && !isMeta) {
       handleSplit()
     }
 
@@ -74,9 +121,9 @@ function EditorShell({ onClose }) {
     }
 
     if (e.key === 'Escape') {
-      onClose()
+      handleClose()
     }
-  }, [dispatch, ui.isPlaying, handleSplit, handleDelete, onClose])
+  }, [dispatch, ui.isPlaying, handleSplit, handleDelete, handleClose, handleSave])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -94,9 +141,18 @@ function EditorShell({ onClose }) {
   return (
     <div className="editor-root">
       <div className="editor-toolbar">
-        <button className="tb-close" onClick={onClose}>Close</button>
+        <button className="tb-close" onClick={handleClose}>Close</button>
         <button disabled={!ui.canUndo} onClick={() => dispatch({ type: 'UNDO' })}>Undo</button>
         <button disabled={!ui.canRedo} onClick={() => dispatch({ type: 'REDO' })}>Redo</button>
+        {projectId && (
+          <button
+            className="tb-save"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : saveStatus === 'error' ? 'Save Failed' : 'Save'}
+          </button>
+        )}
         <div className="tb-spacer" />
         <button
           className="tb-export"
@@ -123,10 +179,10 @@ function EditorShell({ onClose }) {
   )
 }
 
-export default function Editor({ onClose }) {
+export default function Editor({ onClose, projectId, initialProjectData }) {
   return (
-    <EditorProvider>
-      <EditorShell onClose={onClose} />
+    <EditorProvider initialProjectData={initialProjectData}>
+      <EditorShell onClose={onClose} projectId={projectId} />
     </EditorProvider>
   )
 }

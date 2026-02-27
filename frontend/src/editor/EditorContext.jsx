@@ -1,16 +1,15 @@
 import { createContext, useContext, useReducer, useCallback, useMemo, useRef } from 'react'
 
-// --- ID generator ---
-let _nextId = 1
-const genId = () => String(_nextId++)
+// --- ID generator (timestamp + random to avoid collisions across sessions) ---
+const genId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 
 // --- Initial state ---
-const defaultTracks = [
+export const defaultTracks = [
   { id: 'v1', type: 'video', name: 'V1', locked: false, visible: true },
   { id: 'a1', type: 'audio', name: 'A1', locked: false, visible: true },
 ]
 
-const initialProject = {
+export const initialProject = {
   tracks: defaultTracks,
   clips: [],
   mediaBin: [],
@@ -183,6 +182,16 @@ function editorReducer(state, action) {
   if (action.type === 'SET_RIPPLE_MODE') return { ...state, ui: { ...state.ui, rippleDelete: action.value } }
   if (action.type === 'SET_CANVAS_WIDTH') return { ...state, ui: { ...state.ui, canvasWidth: action.width } }
 
+  // Load a saved project (replaces entire state, clears undo/redo)
+  if (action.type === 'LOAD_PROJECT') {
+    return {
+      past: [],
+      present: action.project,
+      future: [],
+      ui: { ...initialUI },
+    }
+  }
+
   // Project actions (undo-able)
   if (PROJECT_ACTIONS.has(action.type)) {
     const newPresent = projectReducer(state.present, action)
@@ -210,8 +219,13 @@ const ProjectContext = createContext(null)
 const UIContext = createContext(null)
 const DispatchContext = createContext(null)
 
-export function EditorProvider({ children }) {
-  const [state, dispatch] = useReducer(editorReducer, initialState)
+export function EditorProvider({ children, initialProjectData }) {
+  const [state, dispatch] = useReducer(
+    editorReducer,
+    initialProjectData
+      ? { past: [], present: initialProjectData, future: [], ui: initialUI }
+      : initialState
+  )
 
   // Memoize context values to avoid unnecessary re-renders
   const projectValue = useMemo(() => state.present, [state.present])

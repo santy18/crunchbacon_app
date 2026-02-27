@@ -49,6 +49,13 @@
   background: #b22;
 }
 
+.editor-toolbar .tb-save {
+  background: #646cff;
+}
+.editor-toolbar .tb-save:hover:not(:disabled) {
+  background: #535bf2;
+}
+
 .editor-toolbar .tb-export {
   background: #2ea043;
   margin-left: auto;
