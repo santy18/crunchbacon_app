@@ -11,7 +11,8 @@
       "Bash(ls:*)",
       "Bash(kill %1:*)",
       "Bash(lsof:*)",
-      "Bash(/Users/santiagogil/miniconda3/envs/qwen-tts/bin/python:*)"
+      "Bash(/Users/santiagogil/miniconda3/envs/qwen-tts/bin/python:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
