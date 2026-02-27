@@ -89,15 +89,22 @@ export default function Testing() {
   return (
     <>
       {editorOpen && <Editor onClose={() => setEditorOpen(false)} />}
-      <div className="container">
-        <h1>Testing</h1>
-        <button className="generate-btn" onClick={() => setEditorOpen(true)} style={{ background: '#2ea043' }}>
+      <div className="max-w-xl flex flex-col gap-4">
+        <h1 className="text-3xl font-bold mb-2">Testing</h1>
+        <button
+          className="px-5 py-2.5 bg-success text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-success-hover"
+          onClick={() => setEditorOpen(true)}
+        >
           Open Video Editor
         </button>
 
-        <label>
+        <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
           Voice
-          <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)}>
+          <select
+            value={selectedVoice}
+            onChange={(e) => setSelectedVoice(e.target.value)}
+            className="px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base focus:outline-none focus:border-bacon-pink"
+          >
             {voices.map((v) => (
               <option key={v} value={v}>
                 {v}
@@ -106,37 +113,40 @@ export default function Testing() {
           </select>
         </label>
 
-        <label>
+        <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
           Text to speak
           <textarea
             rows={4}
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Enter the text you want to generate speech for..."
+            className="px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base resize-y focus:outline-none focus:border-bacon-pink"
           />
         </label>
 
-        <label>
-          Reference text <span className="optional">(optional)</span>
+        <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
+          Reference text <span className="font-normal text-gray-500">(optional)</span>
           <input
             type="text"
             value={refText}
             onChange={(e) => setRefText(e.target.value)}
             placeholder="Transcript of the reference audio"
+            className="px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base focus:outline-none focus:border-bacon-pink"
           />
         </label>
 
-        <label>
-          Video <span className="optional">(optional — attach for voiceover)</span>
-          <div className="file-row">
+        <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
+          Video <span className="font-normal text-gray-500">(optional — attach for voiceover)</span>
+          <div className="flex items-center gap-2.5">
             <input
               type="file"
               accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm"
               onChange={(e) => setVideoFile(e.target.files[0] || null)}
+              className="py-2.5 text-[0.95rem]"
             />
             {videoFile && (
               <button
-                className="remove-btn"
+                className="px-3 py-1.5 text-sm bg-danger text-white border-none rounded-md cursor-pointer hover:bg-danger-hover whitespace-nowrap"
                 onClick={() => {
                   setVideoFile(null)
                   const input = document.querySelector('input[type="file"]')
@@ -150,31 +160,34 @@ export default function Testing() {
         </label>
 
         <button
-          className="generate-btn"
+          className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleGenerate}
           disabled={loading || !text.trim() || !selectedVoice}
         >
           {loading ? 'Generating...' : 'Generate Audio'}
         </button>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="text-red-400">{error}</p>}
 
         {videoFile ? (
-          <div className="result">
+          <div className="flex flex-col gap-3 mt-2">
             <VideoEditor videoFile={videoFile} audioUrl={audioUrl} />
           </div>
         ) : audioUrl ? (
-          <div className="result">
+          <div className="flex flex-col gap-3 mt-2">
             <WaveformEditor audioUrl={audioUrl} />
             <button
-              className="download-btn"
+              className="px-5 py-2.5 bg-success text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-success-hover mt-2"
               onClick={handleSaveToLibrary}
               disabled={saving}
-              style={{ marginTop: 8 }}
             >
               {saving ? 'Saving...' : 'Save to Library'}
             </button>
-            {saveMsg && <p style={{ fontSize: 13, color: saveMsg.startsWith('Error') ? '#ff6b6b' : '#2ea043', marginTop: 4 }}>{saveMsg}</p>}
+            {saveMsg && (
+              <p className={`text-[13px] mt-1 ${saveMsg.startsWith('Error') ? 'text-red-400' : 'text-success'}`}>
+                {saveMsg}
+              </p>
+            )}
           </div>
         ) : null}
       </div>

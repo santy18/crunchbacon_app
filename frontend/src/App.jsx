@@ -9,13 +9,12 @@ import Testing from './pages/Testing'
 import Settings from './pages/Settings'
 import Transcriptions from './pages/Transcriptions'
 import AudioFiles from './pages/AudioFiles'
-import './App.css'
 
 function AppLayout() {
   return (
-    <div className="app-shell">
+    <div className="flex h-screen">
       <Sidebar />
-      <main className="app-main">
+      <main className="flex-1 overflow-y-auto p-8">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/voices" element={<Voices />} />

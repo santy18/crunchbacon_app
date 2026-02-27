@@ -104,13 +104,12 @@ export default function Projects() {
   }
 
   return (
-    <div className="page" style={{ maxWidth: 900 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-        <h1 style={{ margin: 0 }}>Projects</h1>
+    <div className="max-w-[900px]">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold m-0">Projects</h1>
         {!creating && (
           <button
-            className="generate-btn"
-            style={{ marginTop: 0, background: '#2ea043' }}
+            className="px-5 py-2.5 bg-success text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-success-hover"
             onClick={() => setCreating(true)}
           >
             + New Project
@@ -119,11 +118,7 @@ export default function Projects() {
       </div>
 
       {creating && (
-        <div style={{
-          display: 'flex', gap: '0.6rem', alignItems: 'center',
-          marginBottom: '1.5rem', padding: '1rem', background: '#1e1e1e',
-          border: '1px solid #333', borderRadius: 8,
-        }}>
+        <div className="flex gap-2.5 items-center mb-6 p-4 bg-bacon-card border border-neutral-700 rounded-lg">
           <input
             type="text"
             placeholder="Project name..."
@@ -131,14 +126,16 @@ export default function Projects() {
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             autoFocus
-            style={{ flex: 1 }}
+            className="flex-1 px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base focus:outline-none focus:border-bacon-pink"
           />
-          <button className="generate-btn" style={{ marginTop: 0 }} onClick={handleCreate}>
+          <button
+            className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110"
+            onClick={handleCreate}
+          >
             Create
           </button>
           <button
-            className="generate-btn"
-            style={{ marginTop: 0, background: '#555' }}
+            className="px-5 py-2.5 bg-neutral-600 text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-neutral-500"
             onClick={() => { setCreating(false); setNewName('') }}
           >
             Cancel
@@ -146,68 +143,44 @@ export default function Projects() {
         </div>
       )}
 
-      {error && <p className="error">{error}</p>}
+      {error && <p className="text-red-400">{error}</p>}
 
       {loading ? (
-        <p style={{ color: '#888' }}>Loading projects...</p>
+        <p className="text-gray-500">Loading projects...</p>
       ) : projects.length === 0 ? (
-        <div style={{
-          textAlign: 'center', padding: '3rem 1rem', color: '#666',
-          background: '#1a1a1a', borderRadius: 12, border: '1px solid #2a2a2a',
-        }}>
-          <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No projects yet</p>
-          <p style={{ fontSize: '0.9rem' }}>Create a new project to get started</p>
+        <div className="text-center py-12 px-4 text-gray-500 bg-bacon-card rounded-xl border border-bacon-border">
+          <p className="text-lg mb-2">No projects yet</p>
+          <p className="text-[0.9rem]">Create a new project to get started</p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        <div className="flex flex-col gap-2.5">
           {projects.map((p) => (
             <div
               key={p.id}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '1rem',
-                padding: '1rem 1.2rem', background: '#1e1e1e',
-                border: '1px solid #333', borderRadius: 10,
-                cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s',
-              }}
+              className="group flex items-center gap-4 p-4 px-5 bg-bacon-card border border-neutral-700 rounded-xl cursor-pointer transition-all hover:border-bacon-pink hover:bg-[#222]"
               onClick={() => handleOpen(p.id)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#646cff'
-                e.currentTarget.style.background = '#222'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = '#333'
-                e.currentTarget.style.background = '#1e1e1e'
-              }}
             >
-              <div style={{
-                width: 42, height: 42, borderRadius: 8,
-                background: 'rgba(100, 108, 255, 0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '1.3rem', flexShrink: 0,
-              }}>
+              <div className="w-[42px] h-[42px] rounded-lg bg-bacon-pink/10 flex items-center justify-center text-xl shrink-0">
                 {'\uD83C\uDFAC'}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: 2 }}>
-                  {p.name}
-                </div>
-                <div style={{ fontSize: '0.8rem', color: '#888' }}>
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-base mb-0.5">{p.name}</div>
+                <div className="text-[0.8rem] text-gray-500">
                   {p.data ? 'Has saved data' : 'Empty project'} &middot; Updated {formatDate(p.updated_at)}
                 </div>
               </div>
               {loadingId === p.id ? (
-                <span style={{ color: '#888', fontSize: '0.85rem' }}>Loading...</span>
+                <span className="text-gray-500 text-[0.85rem]">Loading...</span>
               ) : (
                 <>
                   <button
-                    className="generate-btn"
-                    style={{ marginTop: 0, padding: '0.4rem 1rem', fontSize: '0.85rem' }}
+                    className="px-4 py-1.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-[0.85rem] hover:brightness-110"
                     onClick={(e) => { e.stopPropagation(); handleOpen(p.id) }}
                   >
                     Open
                   </button>
                   <button
-                    className="remove-btn"
+                    className="px-3 py-1.5 text-sm bg-danger text-white border-none rounded-md cursor-pointer hover:bg-danger-hover"
                     onClick={(e) => { e.stopPropagation(); handleDelete(p.id, p.name) }}
                   >
                     Delete

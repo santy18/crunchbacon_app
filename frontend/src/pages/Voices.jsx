@@ -119,11 +119,11 @@ export default function Voices() {
     const w = canvas.width = canvas.offsetWidth * 2
     const h = canvas.height = canvas.offsetHeight * 2
     ctx.clearRect(0, 0, w, h)
-    ctx.fillStyle = '#1a1a1a'
+    ctx.fillStyle = '#141414'
     ctx.fillRect(0, 0, w, h)
 
     const step = Math.ceil(pcm.length / w)
-    ctx.strokeStyle = '#646cff'
+    ctx.strokeStyle = '#FF1E56'
     ctx.lineWidth = 1.5
     ctx.beginPath()
     for (let x = 0; x < w; x++) {
@@ -174,20 +174,25 @@ export default function Voices() {
   }
 
   return (
-    <div className="page">
-      <h1>Voices</h1>
+    <div className="max-w-3xl">
+      <h1 className="text-3xl font-bold mb-2">Voices</h1>
 
       {/* ---- Voice List ---- */}
-      <section className="voice-list-section">
-        <h2>Saved Voices</h2>
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-3">Saved Voices</h2>
         {voices.length === 0 ? (
-          <p className="voice-empty">No voices yet. Record one below.</p>
+          <p className="text-gray-500 text-[0.95rem]">No voices yet. Record one below.</p>
         ) : (
-          <div className="voice-grid">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3 mt-2.5">
             {voices.map((v) => (
-              <div key={v} className="voice-card">
-                <span className="voice-card-name">{v}</span>
-                <button className="voice-card-delete" onClick={() => deleteVoice(v)}>Delete</button>
+              <div key={v} className="flex items-center justify-between px-4 py-3 bg-bacon-card border border-neutral-700 rounded-lg">
+                <span className="font-semibold text-[0.95rem] overflow-hidden text-ellipsis whitespace-nowrap">{v}</span>
+                <button
+                  className="px-2.5 py-1 text-[0.8rem] bg-danger text-white border-none rounded cursor-pointer shrink-0 hover:bg-danger-hover"
+                  onClick={() => deleteVoice(v)}
+                >
+                  Delete
+                </button>
               </div>
             ))}
           </div>
@@ -195,49 +200,68 @@ export default function Voices() {
       </section>
 
       {/* ---- Create Voice ---- */}
-      <section className="voice-create-section">
-        <h2>Create Voice</h2>
-        <div className="voice-create-form">
-          <label>
+      <section className="mt-4">
+        <h2 className="text-xl font-semibold mb-3">Create Voice</h2>
+        <div className="flex flex-col gap-4 max-w-xl">
+          <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
             Voice Name
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. narrator"
+              className="px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base focus:outline-none focus:border-bacon-pink"
             />
           </label>
 
-          <label>
-            Reference Prompt <span className="optional">(read this aloud)</span>
-          </label>
-          <div className="voice-prompt-box">{REFERENCE_PROMPT}</div>
+          <div className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
+            Reference Prompt <span className="font-normal text-gray-500">(read this aloud)</span>
+          </div>
+          <div className="max-h-40 overflow-y-auto p-3 px-4 bg-bacon-input border border-neutral-600 rounded-md text-[0.92rem] leading-relaxed text-white/85">
+            {REFERENCE_PROMPT}
+          </div>
 
-          <div className="voice-record-controls">
+          <div className="flex gap-2.5">
             {!recording ? (
-              <button className="generate-btn" onClick={startRecording} disabled={!name.trim()}>
+              <button
+                className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={startRecording}
+                disabled={!name.trim()}
+              >
                 Record
               </button>
             ) : (
-              <button className="stop-btn" onClick={stopRecording}>
+              <button
+                className="px-5 py-2.5 bg-danger text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-danger-hover"
+                onClick={stopRecording}
+              >
                 Stop
               </button>
             )}
           </div>
 
           {wavBlob && (
-            <div className="voice-preview">
-              <canvas ref={canvasRef} className="voice-waveform-canvas" />
-              <div className="voice-preview-controls">
-                <button className="generate-btn" onClick={playRecording}>Play</button>
-                <button className="generate-btn" onClick={saveVoice} disabled={saving || !name.trim()}>
-                  {saving ? 'Saving…' : 'Save Voice'}
+            <div className="flex flex-col gap-3">
+              <canvas ref={canvasRef} className="w-full h-[100px] rounded-md border border-neutral-600 bg-bacon-input" />
+              <div className="flex gap-2.5">
+                <button
+                  className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110"
+                  onClick={playRecording}
+                >
+                  Play
+                </button>
+                <button
+                  className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={saveVoice}
+                  disabled={saving || !name.trim()}
+                >
+                  {saving ? 'Saving\u2026' : 'Save Voice'}
                 </button>
               </div>
             </div>
           )}
 
-          {error && <p className="error">{error}</p>}
+          {error && <p className="text-red-400">{error}</p>}
         </div>
       </section>
     </div>

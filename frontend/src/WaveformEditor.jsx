@@ -271,7 +271,7 @@ export default function WaveformEditor({ audioUrl }) {
     writeStr(36, 'data')
     view.setUint32(40, dataSize, true)
 
-    // Interleave channels and convert float32 → int16
+    // Interleave channels and convert float32 -> int16
     const channels = []
     for (let c = 0; c < numCh; c++) channels.push(buffer.getChannelData(c))
 
@@ -296,29 +296,31 @@ export default function WaveformEditor({ audioUrl }) {
 
   if (!buffer) return null
 
+  const btn = 'px-4 py-2 text-[0.9rem] border-none rounded-md cursor-pointer text-white disabled:opacity-40 disabled:cursor-not-allowed'
+
   return (
-    <div className="waveform-editor" ref={containerRef}>
+    <div className="flex flex-col gap-2.5" ref={containerRef}>
       <canvas
         ref={canvasRef}
-        className="waveform-canvas"
+        className="w-full h-[140px] rounded-md cursor-crosshair border border-neutral-600"
         onClick={handleCanvasClick}
       />
-      <p className="waveform-hint">Click to place markers. Shift+click between markers to select a segment.</p>
-      <div className="waveform-controls">
-        <button className="waveform-btn play" onClick={isPlaying ? stop : play}>
+      <p className="text-[0.8rem] text-gray-500 m-0">Click to place markers. Shift+click between markers to select a segment.</p>
+      <div className="flex gap-2 flex-wrap">
+        <button className={`${btn} bg-bacon-pink hover:brightness-110`} onClick={isPlaying ? stop : play}>
           {isPlaying ? 'Stop' : 'Play'}
         </button>
         <button
-          className="waveform-btn delete"
+          className={`${btn} bg-danger hover:bg-danger-hover`}
           onClick={deleteSelection}
           disabled={selected === null}
         >
           Delete Selection
         </button>
-        <button className="waveform-btn clear" onClick={() => { setMarkers([]); setSelected(null) }}>
+        <button className={`${btn} bg-neutral-600 hover:bg-neutral-500`} onClick={() => { setMarkers([]); setSelected(null) }}>
           Clear Markers
         </button>
-        <button className="waveform-btn export" onClick={exportWav}>
+        <button className={`${btn} bg-success hover:bg-success-hover`} onClick={exportWav}>
           Export WAV
         </button>
       </div>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import './AudioFiles.css'
 
 export default function AudioFiles() {
   const [files, setFiles] = useState([])
@@ -276,10 +275,10 @@ export default function AudioFiles() {
     const w = canvas.width = canvas.offsetWidth * 2
     const h = canvas.height = canvas.offsetHeight * 2
     ctx.clearRect(0, 0, w, h)
-    ctx.fillStyle = '#1a1a1a'
+    ctx.fillStyle = '#141414'
     ctx.fillRect(0, 0, w, h)
     const step = Math.ceil(pcm.length / w)
-    ctx.strokeStyle = '#646cff'
+    ctx.strokeStyle = '#FF1E56'
     ctx.lineWidth = 1.5
     ctx.beginPath()
     for (let x = 0; x < w; x++) {
@@ -340,55 +339,57 @@ export default function AudioFiles() {
   }
 
   return (
-    <div className="af-page">
-      <div className="af-header">
-        <h1 className="af-title">Audio Files</h1>
-        <span className="af-count">{files.length} file{files.length !== 1 ? 's' : ''}</span>
+    <div className="max-w-[860px] flex flex-col gap-6">
+      <div className="flex items-baseline gap-3">
+        <h1 className="text-[1.8rem] font-bold m-0 tracking-tight">Audio Files</h1>
+        <span className="text-[0.85rem] text-white/35 font-medium">{files.length} file{files.length !== 1 ? 's' : ''}</span>
       </div>
 
-      {error && <div className="af-error">{error}</div>}
+      {error && (
+        <div className="px-4 py-3 bg-red-500/10 border border-red-500/25 rounded-xl text-red-400 text-[0.9rem]">
+          {error}
+        </div>
+      )}
 
       {/* ---- Create Section ---- */}
-      <div className="af-card">
-        <div className="af-tabs">
-          <button
-            className={`af-tab ${activeTab === 'generate' ? 'active' : ''}`}
-            onClick={() => setActiveTab('generate')}
-          >
-            Generate
-          </button>
-          <button
-            className={`af-tab ${activeTab === 'record' ? 'active' : ''}`}
-            onClick={() => setActiveTab('record')}
-          >
-            Record
-          </button>
-          <button
-            className={`af-tab ${activeTab === 'upload' ? 'active' : ''}`}
-            onClick={() => setActiveTab('upload')}
-          >
-            Upload
-          </button>
+      <div className="bg-bacon-card border border-bacon-border rounded-[14px] overflow-hidden">
+        <div className="flex border-b border-bacon-border">
+          {['generate', 'record', 'upload'].map((tab) => (
+            <button
+              key={tab}
+              className={`flex-1 px-4 py-3 text-[0.9rem] font-medium border-none cursor-pointer transition-colors relative ${
+                activeTab === tab
+                  ? 'text-white bg-bacon-pink/[0.08]'
+                  : 'text-white/45 bg-transparent hover:text-white/70 hover:bg-white/[0.03]'
+              }`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {activeTab === tab && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-bacon-pink" />
+              )}
+            </button>
+          ))}
         </div>
 
-        <div className="af-tab-content">
+        <div className="p-5">
           {/* ---- Generate Tab ---- */}
           {activeTab === 'generate' && (
-            <div className="af-form">
-              <div className="af-field">
-                <label className="af-label">Name</label>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Name</label>
                 <input
-                  className="af-input"
+                  className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                   type="text"
                   value={ttsName}
                   onChange={(e) => setTtsName(e.target.value)}
                   placeholder="Name for this audio file"
                 />
               </div>
-              <div className="af-field">
-                <label className="af-label">Voice</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Voice</label>
                 <select
-                  className="af-select"
+                  className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                   value={selectedVoice}
                   onChange={(e) => setSelectedVoice(e.target.value)}
                 >
@@ -396,22 +397,22 @@ export default function AudioFiles() {
                   {voices.map((v) => <option key={v} value={v}>{v}</option>)}
                 </select>
               </div>
-              <div className="af-field">
-                <label className="af-label">Text to speak</label>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Text to speak</label>
                 <textarea
-                  className="af-textarea"
+                  className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] resize-y focus:outline-none focus:border-bacon-pink transition-colors"
                   rows={4}
                   value={ttsText}
                   onChange={(e) => setTtsText(e.target.value)}
                   placeholder="Enter the text you want to generate speech for..."
                 />
               </div>
-              <div className="af-field">
-                <label className="af-label">
-                  Reference text <span className="af-optional">optional</span>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">
+                  Reference text <span className="font-normal normal-case text-white/25 tracking-normal ml-1.5 text-[0.78rem]">optional</span>
                 </label>
                 <input
-                  className="af-input"
+                  className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                   type="text"
                   value={refText}
                   onChange={(e) => setRefText(e.target.value)}
@@ -419,7 +420,7 @@ export default function AudioFiles() {
                 />
               </div>
               <button
-                className="af-btn af-btn-primary"
+                className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-bacon-pink text-white hover:brightness-110 disabled:opacity-45 disabled:cursor-not-allowed"
                 onClick={handleGenerate}
                 disabled={generating || !ttsText.trim() || !selectedVoice}
               >
@@ -427,10 +428,10 @@ export default function AudioFiles() {
               </button>
 
               {ttsUrl && (
-                <div className="af-preview-result">
-                  <audio src={ttsUrl} controls className="af-audio-player" />
+                <div className="flex flex-col gap-2.5 pt-2">
+                  <audio src={ttsUrl} controls className="w-full rounded-lg h-10" />
                   <button
-                    className="af-btn af-btn-save"
+                    className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-success text-white hover:bg-success-hover disabled:opacity-45 disabled:cursor-not-allowed"
                     onClick={handleSaveTts}
                     disabled={ttsSaving}
                   >
@@ -443,45 +444,56 @@ export default function AudioFiles() {
 
           {/* ---- Record Tab ---- */}
           {activeTab === 'record' && (
-            <div className="af-form">
-              <div className="af-record-area">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-center py-4">
                 {!recording ? (
-                  <button className="af-btn af-btn-record" onClick={startRecording}>
-                    <span className="af-record-dot" />
+                  <button
+                    className="inline-flex items-center justify-center gap-1.5 px-6 py-3 text-[0.95rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-danger text-white hover:brightness-110"
+                    onClick={startRecording}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
                     Record
                   </button>
                 ) : (
-                  <button className="af-btn af-btn-stop" onClick={stopRecording}>
-                    <span className="af-stop-icon" />
+                  <button
+                    className="inline-flex items-center justify-center gap-1.5 px-6 py-3 text-[0.95rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-neutral-600 text-white hover:bg-neutral-500"
+                    onClick={stopRecording}
+                  >
+                    <span className="w-2.5 h-2.5 rounded-sm bg-red-400" />
                     Stop Recording
                   </button>
                 )}
               </div>
 
               {wavBlob && (
-                <div className="af-recording-preview">
-                  <canvas ref={canvasRef} className="af-waveform" />
-                  <div className="af-field">
-                    <label className="af-label">Name</label>
+                <div className="flex flex-col gap-3">
+                  <canvas ref={canvasRef} className="w-full h-20 rounded-lg border border-neutral-700 bg-bacon-input" />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Name</label>
                     <input
-                      className="af-input"
+                      className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                       type="text"
                       placeholder="Name for this recording"
                       value={recordName}
                       onChange={(e) => setRecordName(e.target.value)}
                     />
                   </div>
-                  <div className="af-btn-row">
-                    <button className="af-btn af-btn-secondary" onClick={playRecording}>Play</button>
+                  <div className="flex gap-2 flex-wrap">
                     <button
-                      className="af-btn af-btn-save"
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-neutral-700 text-white hover:bg-neutral-600"
+                      onClick={playRecording}
+                    >
+                      Play
+                    </button>
+                    <button
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-success text-white hover:bg-success-hover disabled:opacity-45 disabled:cursor-not-allowed"
                       onClick={saveRecording}
                       disabled={saving || !recordName.trim()}
                     >
                       {saving ? 'Saving...' : 'Save to Library'}
                     </button>
                     <button
-                      className="af-btn af-btn-ghost"
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-transparent text-white/50 border border-neutral-700 hover:bg-white/[0.05] hover:text-white/80"
                       onClick={() => { setWavBlob(null); setRecordName(''); setAudioChunks([]) }}
                     >
                       Discard
@@ -494,34 +506,34 @@ export default function AudioFiles() {
 
           {/* ---- Upload Tab ---- */}
           {activeTab === 'upload' && (
-            <form className="af-form" onSubmit={handleUpload}>
-              <div className="af-field">
-                <label className="af-label">Name</label>
+            <form className="flex flex-col gap-4" onSubmit={handleUpload}>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Name</label>
                 <input
-                  className="af-input"
+                  className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                   type="text"
                   placeholder="Name for uploaded file"
                   value={uploadName}
                   onChange={(e) => setUploadName(e.target.value)}
                 />
               </div>
-              <div className="af-field">
-                <label className="af-label">Audio file</label>
-                <div className="af-file-drop">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.82rem] font-semibold text-white/55 uppercase tracking-wide">Audio file</label>
+                <div className="relative border-2 border-dashed border-neutral-700 rounded-xl p-6 text-center cursor-pointer transition-colors hover:border-bacon-pink hover:bg-bacon-pink/[0.04]">
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="audio/*"
                     onChange={(e) => setUploadFile(e.target.files[0] || null)}
-                    className="af-file-input"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <div className="af-file-label">
+                  <div className="text-[0.9rem] text-white/40 pointer-events-none">
                     {uploadFile ? uploadFile.name : 'Choose a file or drag it here'}
                   </div>
                 </div>
               </div>
               <button
-                className="af-btn af-btn-primary"
+                className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-bacon-pink text-white hover:brightness-110 disabled:opacity-45 disabled:cursor-not-allowed"
                 type="submit"
                 disabled={uploading || !uploadFile || !uploadName.trim()}
               >
@@ -533,46 +545,65 @@ export default function AudioFiles() {
       </div>
 
       {/* ---- File List ---- */}
-      <div className="af-list-header">
-        <h2 className="af-list-title">Library</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-lg font-semibold m-0 text-white/70">Library</h2>
       </div>
       {files.length === 0 ? (
-        <div className="af-empty">No audio files yet. Generate, record, or upload one above.</div>
+        <div className="text-center py-10 px-4 text-white/30 text-[0.9rem] bg-bacon-card border border-bacon-border rounded-[14px]">
+          No audio files yet. Generate, record, or upload one above.
+        </div>
       ) : (
-        <div className="af-list">
+        <div className="flex flex-col gap-px bg-bacon-border border border-bacon-border rounded-[14px] overflow-hidden">
           {files.map((f) => (
-            <div key={f.id} className={`af-item ${playingId === f.id ? 'playing' : ''}`}>
+            <div
+              key={f.id}
+              className={`group flex items-center gap-3 px-4 py-3 bg-bacon-card transition-colors hover:bg-[#232323] ${
+                playingId === f.id ? 'bg-bacon-pink/[0.06]' : ''
+              }`}
+            >
               {editingId === f.id ? (
-                <div className="af-item-edit">
+                <div className="flex-1 flex flex-col gap-2">
                   <input
-                    className="af-input"
+                    className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] focus:outline-none focus:border-bacon-pink transition-colors"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     placeholder="Name"
                   />
                   <textarea
-                    className="af-textarea"
+                    className="px-3 py-2.5 rounded-lg border border-neutral-700 bg-bacon-input text-white text-[0.92rem] resize-y focus:outline-none focus:border-bacon-pink transition-colors"
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
                     rows={2}
                     placeholder="Text"
                   />
-                  <div className="af-btn-row">
-                    <button className="af-btn af-btn-save" onClick={() => saveEdit(f.id)}>Save</button>
-                    <button className="af-btn af-btn-ghost" onClick={cancelEditing}>Cancel</button>
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium border-none rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-success text-white hover:bg-success-hover"
+                      onClick={() => saveEdit(f.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 text-[0.9rem] font-medium rounded-lg cursor-pointer transition-all active:scale-[0.97] bg-transparent text-white/50 border border-neutral-700 hover:bg-white/[0.05] hover:text-white/80"
+                      onClick={cancelEditing}
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               ) : (
                 <>
                   <button
-                    className="af-play-circle"
+                    className="w-9 h-9 rounded-full bg-bacon-pink/15 border-none text-bacon-pink flex items-center justify-center cursor-pointer shrink-0 transition-all p-0 hover:bg-bacon-pink/30 hover:scale-105 disabled:cursor-default"
                     onClick={() => playAudio(f)}
                     disabled={playingId === f.id}
                     title="Play"
                   >
                     {playingId === f.id ? (
-                      <span className="af-playing-bars">
-                        <span /><span /><span />
+                      <span className="af-playing-bars flex items-end gap-0.5 h-3.5">
+                        <span className="w-[3px] bg-bacon-pink rounded-sm" />
+                        <span className="w-[3px] bg-bacon-pink rounded-sm" />
+                        <span className="w-[3px] bg-bacon-pink rounded-sm" />
                       </span>
                     ) : (
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -580,22 +611,38 @@ export default function AudioFiles() {
                       </svg>
                     )}
                   </button>
-                  <div className="af-item-info">
-                    <div className="af-item-name">{f.name}</div>
-                    <div className="af-item-meta">
-                      {f.voice_name && <span className="af-tag">{f.voice_name}</span>}
+                  <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                    <div className="text-[0.92rem] font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap">{f.name}</div>
+                    <div className="flex items-center gap-2 text-[0.78rem] text-white/35">
+                      {f.voice_name && (
+                        <span className="inline-block px-1.5 py-0.5 bg-bacon-pink/[0.12] text-[#FF6B8A] rounded text-[0.72rem] font-medium">
+                          {f.voice_name}
+                        </span>
+                      )}
                       {f.duration != null && <span>{fmtDuration(f.duration)}</span>}
                       <span>{fmtDate(f.created_at)}</span>
                     </div>
-                    {f.text && <div className="af-item-text">{f.text.length > 100 ? f.text.slice(0, 100) + '...' : f.text}</div>}
+                    {f.text && (
+                      <div className="text-[0.82rem] text-white/40 leading-snug mt-0.5">
+                        {f.text.length > 100 ? f.text.slice(0, 100) + '...' : f.text}
+                      </div>
+                    )}
                   </div>
-                  <div className="af-item-actions">
-                    <button className="af-btn-icon" onClick={() => startEditing(f)} title="Edit">
+                  <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="w-[30px] h-[30px] rounded-md border-none bg-transparent text-white/40 flex items-center justify-center cursor-pointer p-0 transition-colors hover:bg-white/[0.08] hover:text-white/80"
+                      onClick={() => startEditing(f)}
+                      title="Edit"
+                    >
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                         <path d="M10.586.586a2 2 0 012.828 2.828l-8.5 8.5L1 13l1.086-3.914 8.5-8.5z" />
                       </svg>
                     </button>
-                    <button className="af-btn-icon af-btn-icon-danger" onClick={() => deleteFile(f.id)} title="Delete">
+                    <button
+                      className="w-[30px] h-[30px] rounded-md border-none bg-transparent text-white/40 flex items-center justify-center cursor-pointer p-0 transition-colors hover:bg-red-500/[0.12] hover:text-red-400"
+                      onClick={() => deleteFile(f.id)}
+                      title="Delete"
+                    >
                       <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                         <path d="M5 0v1H1v2h12V1H9V0H5zM2 4v9a1 1 0 001 1h8a1 1 0 001-1V4H2z" />
                       </svg>

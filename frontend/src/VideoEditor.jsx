@@ -68,9 +68,9 @@ export default function VideoEditor({ videoFile, audioUrl }) {
 
     // Draw a subtle gradient bar for the video timeline
     const grad = ctx.createLinearGradient(0, 0, w, 0)
-    grad.addColorStop(0, 'rgba(100, 108, 255, 0.3)')
-    grad.addColorStop(0.5, 'rgba(74, 170, 255, 0.3)')
-    grad.addColorStop(1, 'rgba(100, 108, 255, 0.3)')
+    grad.addColorStop(0, 'rgba(255, 30, 86, 0.3)')
+    grad.addColorStop(0.5, 'rgba(255, 172, 65, 0.3)')
+    grad.addColorStop(1, 'rgba(255, 30, 86, 0.3)')
     ctx.fillStyle = grad
     ctx.fillRect(0, h * 0.2, w, h * 0.6)
 
@@ -285,39 +285,40 @@ export default function VideoEditor({ videoFile, audioUrl }) {
 
   const hasDeletedSegments = deletedSegments.size > 0
   const canExport = !!audioUrl
+  const btn = 'px-4 py-2 text-[0.9rem] border-none rounded-md cursor-pointer text-white disabled:opacity-40 disabled:cursor-not-allowed'
 
   return (
-    <div className="video-editor">
+    <div className="flex flex-col gap-2.5">
       <video
         ref={videoRef}
         src={videoSrc}
-        className="video-player"
+        className="w-full rounded-lg bg-black"
         onLoadedMetadata={(e) => setDuration(e.target.duration)}
       />
       <canvas
         ref={canvasRef}
-        className="video-timeline"
+        className="w-full h-[50px] rounded-md cursor-crosshair border border-neutral-600"
         onClick={handleCanvasClick}
       />
-      <p className="waveform-hint">
+      <p className="text-[0.8rem] text-gray-500 m-0">
         Click to place markers. Shift+click between markers to select a segment.
       </p>
-      <div className="video-controls">
-        <button className="video-btn play" onClick={togglePlay} disabled={!duration}>
+      <div className="flex gap-2 flex-wrap">
+        <button className={`${btn} bg-bacon-pink hover:brightness-110`} onClick={togglePlay} disabled={!duration}>
           {isPlaying ? 'Stop' : 'Play'}
         </button>
         <button
-          className="video-btn delete"
+          className={`${btn} bg-danger hover:bg-danger-hover`}
           onClick={deleteSelection}
           disabled={selected === null || deletedSegments.has(selected)}
         >
           Delete Selection
         </button>
-        <button className="video-btn clear" onClick={clearMarkers} disabled={markers.length === 0}>
+        <button className={`${btn} bg-neutral-600 hover:bg-neutral-500`} onClick={clearMarkers} disabled={markers.length === 0}>
           Clear Markers
         </button>
         <button
-          className="video-btn export"
+          className={`${btn} bg-success hover:bg-success-hover`}
           onClick={exportVideo}
           disabled={!canExport || exporting}
           title={!canExport ? 'Generate audio first' : ''}
@@ -326,7 +327,7 @@ export default function VideoEditor({ videoFile, audioUrl }) {
         </button>
       </div>
       {!canExport && (
-        <p className="waveform-hint">Generate audio to enable export.</p>
+        <p className="text-[0.8rem] text-gray-500 m-0">Generate audio to enable export.</p>
       )}
     </div>
   )

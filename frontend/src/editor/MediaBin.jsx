@@ -179,10 +179,10 @@ export default function MediaBin() {
   }, [ttsText, ttsVoice, dispatch, ui.playheadTime])
 
   return (
-    <div className="editor-bin">
-      <div className="editor-bin-header">
+    <div className="flex flex-col border-r border-neutral-700 overflow-hidden" style={{ gridArea: 'bin' }}>
+      <div className="px-2.5 py-2 font-semibold text-xs uppercase tracking-wide text-gray-400 border-b border-neutral-700 flex items-center justify-between">
         <span>Media</span>
-        <label>
+        <label className="inline-flex items-center cursor-pointer text-bacon-pink font-medium text-xs normal-case tracking-normal">
           + Import
           <input
             ref={fileRef}
@@ -190,83 +190,95 @@ export default function MediaBin() {
             accept="video/*,audio/*,image/*"
             multiple
             onChange={handleFiles}
+            className="hidden"
           />
         </label>
       </div>
-      <div className="editor-bin-list">
+      <div className="flex-1 overflow-y-auto p-1">
         {project.mediaBin.map((item) => (
           <div
             key={item.id}
-            className="editor-bin-item"
+            className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer select-none hover:bg-[#2a2a3a]"
             onClick={() => handleAddToTimeline(item)}
             title="Click to add to timeline at playhead"
           >
-            <span className="media-icon">{typeIcons[item.type] || '?'}</span>
-            <div className="media-info">
-              <span className="media-name">{item.name}</span>
-              <span className="media-meta">
+            <span className="text-base w-5 text-center shrink-0">{typeIcons[item.type] || '?'}</span>
+            <div className="flex-1 min-w-0">
+              <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-xs">{item.name}</span>
+              <span className="text-[10px] text-gray-500">
                 {item.type} &middot; {formatDur(item.duration)}
                 {item.width ? ` \u00B7 ${item.width}\u00D7${item.height}` : ''}
               </span>
             </div>
-            <button className="media-remove" onClick={(e) => handleRemove(e, item.id)}>
-              \u00D7
+            <button
+              className="bg-transparent border-none text-gray-500 cursor-pointer text-sm p-0 px-0.5 leading-none hover:text-danger"
+              onClick={(e) => handleRemove(e, item.id)}
+            >
+              {'\u00D7'}
             </button>
           </div>
         ))}
         {project.mediaBin.length === 0 && (
-          <div style={{ padding: '20px 8px', color: '#555', textAlign: 'center', fontSize: '12px' }}>
+          <div className="py-5 px-2 text-neutral-600 text-center text-xs">
             Import media files to get started
           </div>
         )}
       </div>
 
       {/* Audio Library */}
-      <div className="editor-library">
-        <div className="editor-library-header" onClick={() => setLibraryOpen(!libraryOpen)}>
+      <div className="border-t border-neutral-700 shrink-0">
+        <div
+          className="px-2.5 py-2 font-semibold text-[11px] uppercase tracking-wide text-gray-400 border-b border-bacon-border cursor-pointer flex items-center justify-between select-none hover:text-gray-300"
+          onClick={() => setLibraryOpen(!libraryOpen)}
+        >
           <span>{libraryOpen ? '\u25BE' : '\u25B8'} From Library</span>
-          <span className="editor-library-count">{libraryItems.length}</span>
+          <span className="bg-neutral-700 text-gray-400 text-[10px] px-1.5 py-px rounded-lg font-medium">{libraryItems.length}</span>
         </div>
         {libraryOpen && (
-          <div className="editor-library-list">
+          <div className="max-h-[150px] overflow-y-auto p-1">
             {libraryItems.map((item) => (
               <div
                 key={item.id}
-                className="editor-bin-item"
+                className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer select-none hover:bg-[#2a2a3a]"
                 onClick={() => handleAddFromLibrary(item)}
                 title="Click to add to timeline"
               >
-                <span className="media-icon">{'\u266B'}</span>
-                <div className="media-info">
-                  <span className="media-name">{item.name}</span>
-                  <span className="media-meta">
+                <span className="text-base w-5 text-center shrink-0">{'\u266B'}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-xs">{item.name}</span>
+                  <span className="text-[10px] text-gray-500">
                     {item.voice_name || 'audio'} &middot; {formatDur(item.duration)}
                   </span>
                 </div>
-                <button className="media-remove" onClick={(e) => handleDeleteFromLibrary(e, item.id)}>
+                <button
+                  className="bg-transparent border-none text-gray-500 cursor-pointer text-sm p-0 px-0.5 leading-none hover:text-danger"
+                  onClick={(e) => handleDeleteFromLibrary(e, item.id)}
+                >
                   {'\u00D7'}
                 </button>
               </div>
             ))}
             {libraryItems.length === 0 && (
-              <div style={{ padding: '8px', color: '#555', textAlign: 'center', fontSize: '11px' }}>
+              <div className="p-2 text-neutral-600 text-center text-[11px]">
                 No saved audio yet
               </div>
             )}
             {libraryLoading && (
-              <div style={{ padding: '4px 8px', color: '#888', fontSize: '11px' }}>Loading...</div>
+              <div className="px-2 py-1 text-gray-500 text-[11px]">Loading...</div>
             )}
           </div>
         )}
       </div>
 
       {/* TTS Generator */}
-      <div className="editor-tts">
-        <div className="editor-tts-header">Generate Audio (TTS)</div>
-        <div className="editor-tts-body">
+      <div className="border-t border-neutral-700 shrink-0">
+        <div className="px-2.5 py-2 font-semibold text-[11px] uppercase tracking-wide text-gray-400 border-b border-bacon-border">
+          Generate Audio (TTS)
+        </div>
+        <div className="p-2 flex flex-col gap-1.5">
           {voices.length > 0 && (
             <select
-              className="editor-tts-select"
+              className="w-full px-1.5 py-1 text-xs bg-bacon-panel border border-neutral-700 rounded text-gray-200 focus:outline-none focus:border-bacon-pink"
               value={ttsVoice}
               onChange={(e) => setTtsVoice(e.target.value)}
               disabled={ttsLoading}
@@ -277,7 +289,7 @@ export default function MediaBin() {
             </select>
           )}
           <textarea
-            className="editor-tts-textarea"
+            className="w-full px-1.5 py-1.5 text-xs bg-bacon-panel border border-neutral-700 rounded text-gray-200 resize-y min-h-[40px] box-border focus:outline-none focus:border-bacon-pink"
             rows={3}
             placeholder="Type text to generate speech..."
             value={ttsText}
@@ -285,13 +297,13 @@ export default function MediaBin() {
             disabled={ttsLoading}
           />
           <button
-            className="editor-tts-btn"
+            className="px-2.5 py-1.5 text-xs bg-bacon-pink text-white border-none rounded cursor-pointer font-medium hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={handleGenerateTTS}
             disabled={ttsLoading || !ttsText.trim() || !ttsVoice}
           >
             {ttsLoading ? 'Generating...' : 'Generate & Add to Timeline'}
           </button>
-          {ttsError && <div className="editor-tts-error">{ttsError}</div>}
+          {ttsError && <div className="text-[11px] text-red-400">{ttsError}</div>}
         </div>
       </div>
     </div>

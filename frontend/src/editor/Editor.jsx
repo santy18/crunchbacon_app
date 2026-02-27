@@ -6,7 +6,6 @@ import PreviewPlayer from './PreviewPlayer'
 import Timeline from './Timeline'
 import Inspector from './Inspector'
 import { exportProject } from './exportProject'
-import './Editor.css'
 
 // Serialize project for comparison (strips non-serializable File/objectUrl)
 function serializeForCompare(project) {
@@ -138,31 +137,40 @@ function EditorShell({ onClose, projectId }) {
 
   const canSplit = clipsAtPlayhead.length > 0
 
+  const tbBtn = 'px-3 py-1 text-xs border-none rounded cursor-pointer text-gray-200 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-35 disabled:cursor-not-allowed'
+
   return (
-    <div className="editor-root">
-      <div className="editor-toolbar">
-        <button className="tb-close" onClick={handleClose}>Close</button>
-        <button disabled={!ui.canUndo} onClick={() => dispatch({ type: 'UNDO' })}>Undo</button>
-        <button disabled={!ui.canRedo} onClick={() => dispatch({ type: 'REDO' })}>Redo</button>
+    <div className="fixed inset-0 z-[1000] bg-bacon-dark text-gray-200 flex flex-col font-sans text-[13px] overflow-hidden">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-bacon-panel border-b border-neutral-700 shrink-0">
+        <button className={`${tbBtn} !bg-danger hover:!bg-danger-hover`} onClick={handleClose}>Close</button>
+        <button className={tbBtn} disabled={!ui.canUndo} onClick={() => dispatch({ type: 'UNDO' })}>Undo</button>
+        <button className={tbBtn} disabled={!ui.canRedo} onClick={() => dispatch({ type: 'REDO' })}>Redo</button>
         {projectId && (
           <button
-            className="tb-save"
+            className={`${tbBtn} !bg-bacon-pink hover:!brightness-110`}
             onClick={handleSave}
             disabled={saving}
           >
             {saving ? 'Saving...' : saveStatus === 'saved' ? 'Saved!' : saveStatus === 'error' ? 'Save Failed' : 'Save'}
           </button>
         )}
-        <div className="tb-spacer" />
+        <div className="flex-1" />
         <button
-          className="tb-export"
+          className={`${tbBtn} !bg-success hover:!bg-success-hover ml-auto`}
           onClick={handleExport}
           disabled={project.clips.length === 0 || exporting}
         >
           {exporting ? 'Exporting...' : 'Export MP4'}
         </button>
       </div>
-      <div className="editor-layout">
+      <div
+        className="flex-1 grid overflow-hidden min-h-0"
+        style={{
+          gridTemplateColumns: '220px 1fr 260px',
+          gridTemplateRows: '1fr 200px',
+          gridTemplateAreas: '"bin preview inspector" "timeline timeline timeline"',
+        }}
+      >
         <MediaBin />
         <PreviewPlayer />
         <Inspector />

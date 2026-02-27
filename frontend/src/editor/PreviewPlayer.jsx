@@ -208,26 +208,28 @@ export default function PreviewPlayer() {
     dispatch({ type: 'SET_PLAYING', value: !ui.isPlaying })
   }
 
+  const transportBtn = 'bg-neutral-700 border-none text-gray-200 text-base w-8 h-7 rounded cursor-pointer flex items-center justify-center p-0 leading-none hover:bg-neutral-600'
+
   return (
-    <div className="editor-preview">
+    <div className="flex flex-col items-center justify-center bg-black overflow-hidden relative" style={{ gridArea: 'preview' }}>
       {activeVideoMedia ? (
-        <video ref={videoRef} muted={false} playsInline />
+        <video ref={videoRef} muted={false} playsInline className="max-w-full max-h-[calc(100%-40px)] object-contain flex-1 min-h-0" />
       ) : (
-        <span className="editor-preview-empty">
-          {activeAudioClips.length > 0 ? 'Audio only — press Space to play' : 'No clip at playhead'}
+        <span className="text-neutral-600 text-sm flex-1 flex items-center justify-center">
+          {activeAudioClips.length > 0 ? 'Audio only \u2014 press Space to play' : 'No clip at playhead'}
         </span>
       )}
-      <div className="editor-transport">
-        <button className="transport-btn" onClick={goToStart} title="Go to beginning">
+      <div className="flex items-center justify-center gap-2 px-3 py-1 bg-bacon-panel border-t border-neutral-700 shrink-0 w-full box-border">
+        <button className={transportBtn} onClick={goToStart} title="Go to beginning">
           &#9198;
         </button>
-        <button className="transport-btn transport-play" onClick={togglePlay} title={ui.isPlaying ? 'Pause' : 'Play'}>
+        <button className={`${transportBtn} !bg-bacon-pink !w-10 hover:!brightness-110`} onClick={togglePlay} title={ui.isPlaying ? 'Pause' : 'Play'}>
           {ui.isPlaying ? '\u23F8' : '\u25B6'}
         </button>
-        <button className="transport-btn" onClick={goToEnd} title="Go to end">
+        <button className={transportBtn} onClick={goToEnd} title="Go to end">
           &#9197;
         </button>
-        <span className="transport-timecode">{formatTimecode(ui.playheadTime)}</span>
+        <span className="font-mono text-xs text-gray-400 ml-2 min-w-[60px]">{formatTimecode(ui.playheadTime)}</span>
       </div>
     </div>
   )

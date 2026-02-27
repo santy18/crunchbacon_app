@@ -7,9 +7,9 @@ const TRACK_H = 50
 const HANDLE_W = 6
 
 const CLIP_COLORS = {
-  video: '#646cff',
+  video: '#FF1E56',
   audio: '#2ea043',
-  image: '#c47a20',
+  image: '#FFAC41',
 }
 
 export default function Timeline({ onSplit, onDelete, canSplit, canDelete, rippleDelete, onToggleRipple }) {
@@ -229,7 +229,7 @@ export default function Timeline({ onSplit, onDelete, canSplit, canDelete, rippl
         origTrackId: clip.trackId,
       }
     } else {
-      // Click on ruler or empty area → seek
+      // Click on ruler or empty area -> seek
       dispatch({ type: 'SELECT_CLIP', clipId: null })
       const time = Math.max(0, xToTime(mx, u.zoom, u.scrollLeft))
       dispatch({ type: 'SET_PLAYHEAD', time })
@@ -337,27 +337,29 @@ export default function Timeline({ onSplit, onDelete, canSplit, canDelete, rippl
     dispatch({ type: 'SET_ZOOM', zoom: Math.max(10, u.zoom / 1.25) })
   }
 
+  const tlBtn = 'px-2 py-0.5 text-xs border-none rounded cursor-pointer text-gray-200 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-35 disabled:cursor-not-allowed'
+
   return (
-    <div className="editor-timeline">
-      <div className="editor-timeline-toolbar">
-        <button className="tl-split" onClick={onSplit} disabled={!canSplit} title="Split clip(s) at playhead (S)">Split</button>
-        <button className="tl-delete" onClick={onDelete} disabled={!canDelete} title="Delete selected clip (Del)">Delete</button>
-        <button className={rippleDelete ? 'tl-active' : ''} onClick={onToggleRipple} title="Ripple: close gaps after delete">Ripple {rippleDelete ? 'ON' : 'OFF'}</button>
-        <span className="tl-sep" />
-        <button onClick={zoomOut}>-</button>
-        <span className="zoom-display">{Math.round(ui.zoom)}%</span>
-        <button onClick={zoomIn}>+</button>
-        <span style={{ color: '#666', fontSize: '11px', marginLeft: '8px' }}>
+    <div className="flex flex-col border-t border-neutral-700 bg-bacon-card overflow-hidden" style={{ gridArea: 'timeline' }}>
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-bacon-panel border-b border-bacon-border shrink-0">
+        <button className={`${tlBtn} !bg-warn hover:!bg-warn-hover`} onClick={onSplit} disabled={!canSplit} title="Split clip(s) at playhead (S)">Split</button>
+        <button className={`${tlBtn} !bg-danger hover:!bg-danger-hover`} onClick={onDelete} disabled={!canDelete} title="Delete selected clip (Del)">Delete</button>
+        <button className={rippleDelete ? `${tlBtn} !bg-bacon-pink hover:!brightness-110` : tlBtn} onClick={onToggleRipple} title="Ripple: close gaps after delete">Ripple {rippleDelete ? 'ON' : 'OFF'}</button>
+        <span className="w-px h-4 bg-neutral-600 shrink-0" />
+        <button className={tlBtn} onClick={zoomOut}>-</button>
+        <span className="text-[11px] text-gray-500 font-mono min-w-[42px] text-center">{Math.round(ui.zoom)}%</span>
+        <button className={tlBtn} onClick={zoomIn}>+</button>
+        <span className="text-neutral-600 text-[11px] ml-2">
           {formatTimecode(ui.playheadTime)}
         </span>
       </div>
       <div
-        className="editor-timeline-canvas-wrapper"
+        className="flex-1 overflow-hidden cursor-default relative"
         ref={wrapperRef}
         onMouseDown={handleMouseDown}
         onWheel={handleWheel}
       >
-        <canvas ref={canvasRef} className="editor-timeline-canvas" />
+        <canvas ref={canvasRef} className="block w-full h-full" />
       </div>
     </div>
   )

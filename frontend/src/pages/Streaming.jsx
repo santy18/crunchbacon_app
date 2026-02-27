@@ -156,12 +156,17 @@ export default function Streaming() {
   }
 
   return (
-    <div className="container">
-      <h1>Real-Time Voice Cloning</h1>
+    <div className="max-w-xl flex flex-col gap-4">
+      <h1 className="text-3xl font-bold mb-2">Real-Time Voice Cloning</h1>
 
-      <label>
+      <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
         Voice
-        <select value={selectedVoice} onChange={(e) => setSelectedVoice(e.target.value)} disabled={isStreaming}>
+        <select
+          value={selectedVoice}
+          onChange={(e) => setSelectedVoice(e.target.value)}
+          disabled={isStreaming}
+          className="px-3 py-2.5 rounded-md border border-neutral-600 bg-bacon-input text-white text-base focus:outline-none focus:border-bacon-pink"
+        >
           {voices.map((v) => (
             <option key={v} value={v}>
               {v}
@@ -170,9 +175,9 @@ export default function Streaming() {
         </select>
       </label>
 
-      <label>
+      <label className="flex flex-col gap-1.5 font-medium text-[0.95rem]">
         Delay (seconds)
-        <div className="slider-row">
+        <div className="flex items-center gap-3">
           <input
             type="range"
             min={2}
@@ -180,27 +185,32 @@ export default function Streaming() {
             value={streamDelay}
             onChange={(e) => setStreamDelay(Number(e.target.value))}
             disabled={isStreaming}
+            className="flex-1 accent-bacon-pink"
           />
-          <span className="slider-value">{streamDelay}s</span>
+          <span className="min-w-[2.5rem] text-right tabular-nums font-semibold">{streamDelay}s</span>
         </div>
       </label>
 
       <button
-        className={isStreaming ? 'stop-btn' : 'generate-btn'}
+        className={`px-5 py-2.5 text-white rounded-lg font-medium border-none cursor-pointer text-base disabled:opacity-50 disabled:cursor-not-allowed ${
+          isStreaming
+            ? 'bg-danger hover:bg-danger-hover'
+            : 'bg-bacon-pink hover:brightness-110'
+        }`}
         onClick={isStreaming ? stopStreaming : startStreaming}
         disabled={!selectedVoice}
       >
         {isStreaming ? 'Stop Streaming' : 'Start Streaming'}
       </button>
 
-      {streamError && <p className="error">{streamError}</p>}
+      {streamError && <p className="text-red-400">{streamError}</p>}
 
       {transcripts.length > 0 && (
-        <div className="transcripts">
-          <h3>Transcriptions</h3>
-          <div className="transcript-list">
+        <div className="mt-2">
+          <h3 className="mb-1.5 text-base font-semibold">Transcriptions</h3>
+          <div className="max-h-[200px] overflow-y-auto px-3 py-2.5 bg-bacon-input rounded-md border border-neutral-600">
             {transcripts.map((t, i) => (
-              <p key={i} className="transcript-item">{t}</p>
+              <p key={i} className="my-1 text-[0.9rem] leading-relaxed">{t}</p>
             ))}
           </div>
         </div>
