@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -68,6 +68,18 @@ class Transcription(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     voice: Mapped["Voice | None"] = relationship(back_populates="transcriptions")
+
+
+class AudioFile(Base):
+    __tablename__ = "audio_files"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    text: Mapped[str | None] = mapped_column(Text, default=None)
+    voice_name: Mapped[str | None] = mapped_column(String(255), default=None)
+    file_path: Mapped[str] = mapped_column(String(1024))
+    duration: Mapped[float | None] = mapped_column(Float, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Setting(Base):

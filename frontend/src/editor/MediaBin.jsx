@@ -69,6 +69,11 @@ export default function MediaBin() {
   const dispatch = useDispatch()
   const fileRef = useRef(null)
 
+  // Library state
+  const [libraryItems, setLibraryItems] = useState([])
+  const [libraryOpen, setLibraryOpen] = useState(true)
+  const [libraryLoading, setLibraryLoading] = useState(null)
+
   // TTS state
   const [voices, setVoices] = useState([])
   const [ttsVoice, setTtsVoice] = useState('')
@@ -85,6 +90,10 @@ export default function MediaBin() {
           if (data.length > 0) setTtsVoice(data[0])
         }
       })
+      .catch(() => {})
+    fetch('/audio-library')
+      .then((res) => res.ok ? res.json() : [])
+      .then((data) => { if (Array.isArray(data)) setLibraryItems(data) })
       .catch(() => {})
   }, [])
 
@@ -106,6 +115,35 @@ export default function MediaBin() {
     e.stopPropagation()
     dispatch(removeMedia(id))
   }, [dispatch])
+
+  const handleAddFromLibrary = useCallback(async (item) => {
+    setLibraryLoading(item.id)
+    try {
+      const res = await fetch(`/audio-library/${item.id}/file`)
+      if (!res.ok) throw new Error('Failed to fetch')
+      const blob = await res.blob()
+      const file = new File([blob], `${item.name}.wav`, { type: 'audio/wav' })
+      const media = await probeMedia(file)
+      if (media) {
+        dispatch(addMedia(media))
+        dispatch(addClip(media, 'a1', ui.playheadTime))
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setLibraryLoading(null)
+    }
+  }, [dispatch, ui.playheadTime])
+
+  const handleDeleteFromLibrary = useCallback(async (e, id) => {
+    e.stopPropagation()
+    try {
+      await fetch(`/audio-library/${id}`, { method: 'DELETE' })
+      setLibraryItems((prev) => prev.filter((i) => i.id !== id))
+    } catch {
+      // silently fail
+    }
+  }, [])
 
   const handleGenerateTTS = useCallback(async () => {
     if (!ttsText.trim() || !ttsVoice) return
@@ -179,6 +217,45 @@ export default function MediaBin() {
         {project.mediaBin.length === 0 && (
           <div style={{ padding: '20px 8px', color: '#555', textAlign: 'center', fontSize: '12px' }}>
             Import media files to get started
+          </div>
+        )}
+      </div>
+
+      {/* Audio Library */}
+      <div className="editor-library">
+        <div className="editor-library-header" onClick={() => setLibraryOpen(!libraryOpen)}>
+          <span>{libraryOpen ? '\u25BE' : '\u25B8'} From Library</span>
+          <span className="editor-library-count">{libraryItems.length}</span>
+        </div>
+        {libraryOpen && (
+          <div className="editor-library-list">
+            {libraryItems.map((item) => (
+              <div
+                key={item.id}
+                className="editor-bin-item"
+                onClick={() => handleAddFromLibrary(item)}
+                title="Click to add to timeline"
+              >
+                <span className="media-icon">{'\u266B'}</span>
+                <div className="media-info">
+                  <span className="media-name">{item.name}</span>
+                  <span className="media-meta">
+                    {item.voice_name || 'audio'} &middot; {formatDur(item.duration)}
+                  </span>
+                </div>
+                <button className="media-remove" onClick={(e) => handleDeleteFromLibrary(e, item.id)}>
+                  {'\u00D7'}
+                </button>
+              </div>
+            ))}
+            {libraryItems.length === 0 && (
+              <div style={{ padding: '8px', color: '#555', textAlign: 'center', fontSize: '11px' }}>
+                No saved audio yet
+              </div>
+            )}
+            {libraryLoading && (
+              <div style={{ padding: '4px 8px', color: '#888', fontSize: '11px' }}>Loading...</div>
+            )}
           </div>
         )}
       </div>

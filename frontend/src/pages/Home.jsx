@@ -47,13 +47,14 @@ const features = [
 ]
 
 export default function Home() {
-  const [stats, setStats] = useState({ voices: 0, transcriptions: 0 })
+  const [stats, setStats] = useState({ voices: 0, transcriptions: 0, audioFiles: 0 })
 
   useEffect(() => {
     Promise.all([
       fetch('/voices').then((r) => (r.ok ? r.json() : [])),
       fetch('/transcriptions').then((r) => (r.ok ? r.json() : [])),
-    ]).then(([v, t]) => setStats({ voices: v.length, transcriptions: t.length }))
+      fetch('/audio-library').then((r) => (r.ok ? r.json() : [])),
+    ]).then(([v, t, a]) => setStats({ voices: v.length, transcriptions: t.length, audioFiles: a.length }))
       .catch(() => {})
   }, [])
 
@@ -71,6 +72,11 @@ export default function Home() {
           <div className="home-stat">
             <span className="home-stat-value">{stats.transcriptions}</span>
             <span className="home-stat-label">Transcriptions</span>
+          </div>
+          <div className="home-stat-divider" />
+          <div className="home-stat">
+            <span className="home-stat-value">{stats.audioFiles}</span>
+            <span className="home-stat-label">Audio Files</span>
           </div>
         </div>
       </header>

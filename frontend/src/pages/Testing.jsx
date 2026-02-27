@@ -12,7 +12,10 @@ export default function Testing() {
   const [videoFile, setVideoFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [audioUrl, setAudioUrl] = useState(null)
+  const [audioBlob, setAudioBlob] = useState(null)
   const [error, setError] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState(null)
 
   useEffect(() => {
     fetch('/voices')
@@ -34,6 +37,8 @@ export default function Testing() {
     setLoading(true)
     setError(null)
     if (audioUrl) { URL.revokeObjectURL(audioUrl); setAudioUrl(null) }
+    setAudioBlob(null)
+    setSaveMsg(null)
 
     try {
       const res = await fetch('/generate', {
@@ -52,11 +57,32 @@ export default function Testing() {
       }
 
       const blob = await res.blob()
+      setAudioBlob(blob)
       setAudioUrl(URL.createObjectURL(blob))
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveToLibrary = async () => {
+    if (!audioBlob) return
+    setSaving(true)
+    setSaveMsg(null)
+    try {
+      const fd = new FormData()
+      fd.append('audio', audioBlob, 'audio.wav')
+      fd.append('name', `TTS ${new Date().toLocaleString()}`)
+      if (text.trim()) fd.append('text', text.trim())
+      if (selectedVoice) fd.append('voice_name', selectedVoice)
+      const res = await fetch('/audio-library', { method: 'POST', body: fd })
+      if (!res.ok) throw new Error('Failed to save')
+      setSaveMsg('Saved to library!')
+    } catch {
+      setSaveMsg('Error saving to library')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -140,6 +166,15 @@ export default function Testing() {
         ) : audioUrl ? (
           <div className="result">
             <WaveformEditor audioUrl={audioUrl} />
+            <button
+              className="download-btn"
+              onClick={handleSaveToLibrary}
+              disabled={saving}
+              style={{ marginTop: 8 }}
+            >
+              {saving ? 'Saving...' : 'Save to Library'}
+            </button>
+            {saveMsg && <p style={{ fontSize: 13, color: saveMsg.startsWith('Error') ? '#ff6b6b' : '#2ea043', marginTop: 4 }}>{saveMsg}</p>}
           </div>
         ) : null}
       </div>

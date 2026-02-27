@@ -6,6 +6,7 @@ const links = [
   { to: '/projects', label: 'Projects', icon: '\uD83D\uDCC1' },
   { to: '/streaming', label: 'Streaming', icon: '\uD83C\uDF99\uFE0F' },
   { to: '/transcriptions', label: 'Transcriptions', icon: '\u{1F4DD}' },
+  { to: '/audio-files', label: 'Audio Files', icon: '\uD83D\uDD0A' },
   { to: '/testing', label: 'Testing', icon: '\u26A1' },
   { to: '/settings', label: 'Settings', icon: '\u2699\uFE0F' },
 ]

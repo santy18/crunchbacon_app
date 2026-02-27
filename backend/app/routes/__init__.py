@@ -1,3 +1,4 @@
+from .audio_library import router as audio_library_router
 from .export import router as export_router
 from .generate import router as generate_router
 from .projects import router as projects_router
@@ -16,4 +17,5 @@ all_routers = [
     scripts_router,
     transcriptions_router,
     settings_router,
+    audio_library_router,
 ]

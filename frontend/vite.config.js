@@ -19,6 +19,7 @@ export default defineConfig({
       '/transcriptions': 'http://localhost:8000',
       '/settings': 'http://localhost:8000',
       '/generations': 'http://localhost:8000',
+      '/audio-library': 'http://localhost:8000',
     },
   },
 })

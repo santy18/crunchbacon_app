@@ -142,6 +142,26 @@ async def export_project(request: Request):
                 input_map[mid] = len(inputs)
                 inputs.append(media_path)
 
+        # Probe first video clip resolution for concat target
+        target_w, target_h = 1920, 1080
+        if video_clips:
+            first_media = media_files.get(video_clips[0]["mediaId"])
+            if first_media:
+                probe = subprocess.run(
+                    ["ffprobe", "-v", "error", "-select_streams", "v:0",
+                     "-show_entries", "stream=width,height", "-of", "csv=p=0",
+                     first_media],
+                    capture_output=True, timeout=30,
+                )
+                if probe.returncode == 0:
+                    parts = probe.stdout.decode().strip().split(",")
+                    if len(parts) == 2:
+                        pw, ph = int(parts[0]), int(parts[1])
+                        # ensure even dimensions
+                        target_w = pw if pw % 2 == 0 else pw + 1
+                        target_h = ph if ph % 2 == 0 else ph + 1
+                print(f"[export] Target resolution: {target_w}x{target_h}")
+
         filters = []
         v_labels = []
         a_labels = []
@@ -162,6 +182,10 @@ async def export_project(request: Request):
                 vf += f",scale=iw*{scale}:ih*{scale}"
             if rotation != 0:
                 vf += f",rotate={rotation}*PI/180:fillcolor=black@0"
+            # normalize all clips to same resolution/format for concat
+            vf += f",scale={target_w}:{target_h}:force_original_aspect_ratio=decrease"
+            vf += f",pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black"
+            vf += ",format=yuv420p,setsar=1"
             vf += f"[{label}]"
             filters.append(vf)
             v_labels.append(f"[{label}]")
@@ -227,7 +251,7 @@ async def export_project(request: Request):
         print(f"[export] Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, capture_output=True, timeout=300)
         if result.returncode != 0:
-            stderr = result.stderr.decode()[:800]
+            stderr = result.stderr.decode()[-2000:]
             print(f"[export] FFmpeg FAILED:\n{stderr}")
             raise HTTPException(status_code=500, detail=f"FFmpeg error: {stderr}")
 

@@ -98,6 +98,23 @@ class TranscriptionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# --- AudioFile ---
+
+class AudioFileUpdate(BaseModel):
+    name: str | None = None
+    text: str | None = None
+
+class AudioFileOut(BaseModel):
+    id: int
+    name: str
+    text: str | None
+    voice_name: str | None
+    file_path: str
+    duration: float | None
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
 # --- Setting ---
 
 class SettingUpsert(BaseModel):
