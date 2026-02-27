@@ -12,7 +12,7 @@ const CLIP_COLORS = {
   image: '#c47a20',
 }
 
-export default function Timeline() {
+export default function Timeline({ onSplit, onDelete, canSplit, canDelete, rippleDelete, onToggleRipple }) {
   const project = useProject()
   const ui = useUI()
   const dispatch = useDispatch()
@@ -340,6 +340,10 @@ export default function Timeline() {
   return (
     <div className="editor-timeline">
       <div className="editor-timeline-toolbar">
+        <button className="tl-split" onClick={onSplit} disabled={!canSplit} title="Split clip(s) at playhead (S)">Split</button>
+        <button className="tl-delete" onClick={onDelete} disabled={!canDelete} title="Delete selected clip (Del)">Delete</button>
+        <button className={rippleDelete ? 'tl-active' : ''} onClick={onToggleRipple} title="Ripple: close gaps after delete">Ripple {rippleDelete ? 'ON' : 'OFF'}</button>
+        <span className="tl-sep" />
         <button onClick={zoomOut}>-</button>
         <span className="zoom-display">{Math.round(ui.zoom)}%</span>
         <button onClick={zoomIn}>+</button>

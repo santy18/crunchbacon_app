@@ -97,30 +97,6 @@ function EditorShell({ onClose }) {
         <button className="tb-close" onClick={onClose}>Close</button>
         <button disabled={!ui.canUndo} onClick={() => dispatch({ type: 'UNDO' })}>Undo</button>
         <button disabled={!ui.canRedo} onClick={() => dispatch({ type: 'REDO' })}>Redo</button>
-        <span className="tb-sep" />
-        <button
-          className="tb-split"
-          onClick={handleSplit}
-          disabled={!canSplit}
-          title="Split clip(s) at playhead (S)"
-        >
-          Split
-        </button>
-        <button
-          className="tb-delete"
-          onClick={handleDelete}
-          disabled={!ui.selectedClipId}
-          title="Delete selected clip (Del)"
-        >
-          Delete
-        </button>
-        <button
-          className={ui.rippleDelete ? 'tb-active' : ''}
-          onClick={() => dispatch({ type: 'SET_RIPPLE_MODE', value: !ui.rippleDelete })}
-          title="Ripple: closing gaps after delete"
-        >
-          Ripple {ui.rippleDelete ? 'ON' : 'OFF'}
-        </button>
         <div className="tb-spacer" />
         <button
           className="tb-export"
@@ -134,7 +110,14 @@ function EditorShell({ onClose }) {
         <MediaBin />
         <PreviewPlayer />
         <Inspector />
-        <Timeline />
+        <Timeline
+          onSplit={handleSplit}
+          onDelete={handleDelete}
+          canSplit={canSplit}
+          canDelete={!!ui.selectedClipId}
+          rippleDelete={ui.rippleDelete}
+          onToggleRipple={() => dispatch({ type: 'SET_RIPPLE_MODE', value: !ui.rippleDelete })}
+        />
       </div>
     </div>
   )

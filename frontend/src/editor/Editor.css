@@ -482,6 +482,39 @@
   background: #444;
 }
 
+.editor-timeline-toolbar .tl-split {
+  background: #c47a20;
+}
+.editor-timeline-toolbar .tl-split:hover:not(:disabled) {
+  background: #a86618;
+}
+
+.editor-timeline-toolbar .tl-delete {
+  background: #d33;
+}
+.editor-timeline-toolbar .tl-delete:hover:not(:disabled) {
+  background: #b22;
+}
+
+.editor-timeline-toolbar .tl-active {
+  background: #646cff;
+}
+.editor-timeline-toolbar .tl-active:hover {
+  background: #535bf2;
+}
+
+.editor-timeline-toolbar .tl-sep {
+  width: 1px;
+  height: 16px;
+  background: #444;
+  flex-shrink: 0;
+}
+
+.editor-timeline-toolbar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .editor-timeline-toolbar .zoom-display {
   font-size: 11px;
   color: #888;
