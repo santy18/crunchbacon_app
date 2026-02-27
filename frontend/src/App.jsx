@@ -6,6 +6,7 @@ import Projects from './pages/Projects'
 import Streaming from './pages/Streaming'
 import Testing from './pages/Testing'
 import Settings from './pages/Settings'
+import Transcriptions from './pages/Transcriptions'
 import './App.css'
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/streaming" element={<Streaming />} />
           <Route path="/testing" element={<Testing />} />
+          <Route path="/transcriptions" element={<Transcriptions />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>

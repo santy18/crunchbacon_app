@@ -85,6 +85,9 @@ class ScriptOut(BaseModel):
 
 # --- Transcription ---
 
+class TranscriptionUpdate(BaseModel):
+    text: str
+
 class TranscriptionOut(BaseModel):
     id: int
     text: str
