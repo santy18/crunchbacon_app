@@ -105,19 +105,38 @@ export default function Transcriptions() {
   }
 
   // ---- recording ----
-  const startRecording = async () => {
+  const startRecording = async (captureTab = false) => {
     setError('')
     setWavBlob(null)
     setAudioChunks([])
     setLastResult('')
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      streamRef.current = stream
+      let stream
+      if (captureTab) {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          audio: true,
+          video: true, // required by API, we discard it
+        })
+        // Drop the video track — we only want audio
+        stream.getVideoTracks().forEach((t) => t.stop())
+        if (stream.getAudioTracks().length === 0) {
+          throw new Error('No audio shared. Make sure to check "Share audio" when selecting the tab.')
+        }
+        // Keep only audio tracks
+        const audioOnly = new MediaStream(stream.getAudioTracks())
+        streamRef.current = audioOnly
+        // Also hold original stream ref so we can stop all tracks later
+        streamRef._displayStream = stream
+      } else {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        streamRef.current = stream
+      }
+
       const ctx = new AudioContext()
       audioCtxRef.current = ctx
       sampleRateRef.current = ctx.sampleRate
       await ctx.audioWorklet.addModule('/pcm-processor.js')
-      const source = ctx.createMediaStreamSource(stream)
+      const source = ctx.createMediaStreamSource(streamRef.current)
       sourceRef.current = source
       const worklet = new AudioWorkletNode(ctx, 'pcm-processor')
       workletRef.current = worklet
@@ -129,8 +148,18 @@ export default function Transcriptions() {
       source.connect(worklet)
       worklet.connect(ctx.destination)
       setRecording(true)
-    } catch {
-      setError('Microphone access denied or unavailable.')
+
+      // Auto-stop if the user ends screen sharing via the browser UI
+      if (captureTab) {
+        streamRef.current.getAudioTracks()[0].onended = () => {
+          if (recording) stopRecording()
+        }
+      }
+    } catch (err) {
+      setError(captureTab
+        ? (err.message || 'Tab audio capture failed. Make sure to share a tab with "Share audio" checked.')
+        : 'Microphone access denied or unavailable.'
+      )
     }
   }
 
@@ -140,6 +169,10 @@ export default function Transcriptions() {
     workletRef.current?.disconnect()
     sourceRef.current?.disconnect()
     streamRef.current?.getTracks().forEach((t) => t.stop())
+    if (streamRef._displayStream) {
+      streamRef._displayStream.getTracks().forEach((t) => t.stop())
+      streamRef._displayStream = null
+    }
     audioCtxRef.current?.close()
 
     const chunks = audioChunks
@@ -337,12 +370,20 @@ export default function Transcriptions() {
         <div className="flex flex-col gap-4 max-w-xl">
           <div className="flex gap-2.5">
             {!recording ? (
-              <button
-                className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110"
-                onClick={startRecording}
-              >
-                Record
-              </button>
+              <>
+                <button
+                  className="px-5 py-2.5 bg-bacon-pink text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110"
+                  onClick={() => startRecording(false)}
+                >
+                  Record Mic
+                </button>
+                <button
+                  className="px-5 py-2.5 bg-bacon-orange text-white rounded-lg font-medium border-none cursor-pointer text-base hover:brightness-110"
+                  onClick={() => startRecording(true)}
+                >
+                  Record Tab Audio
+                </button>
+              </>
             ) : (
               <button
                 className="px-5 py-2.5 bg-danger text-white rounded-lg font-medium border-none cursor-pointer text-base hover:bg-danger-hover"
