@@ -6,6 +6,7 @@ import PreviewPlayer from './PreviewPlayer'
 import Timeline from './Timeline'
 import Inspector from './Inspector'
 import { exportProject } from './exportProject'
+import PublishButton from './PublishButton'
 
 // Serialize project for comparison (strips non-serializable File/objectUrl)
 function serializeForCompare(project) {
@@ -155,8 +156,9 @@ function EditorShell({ onClose, projectId }) {
           </button>
         )}
         <div className="flex-1" />
+        <PublishButton project={project} />
         <button
-          className={`${tbBtn} !bg-success hover:!bg-success-hover ml-auto`}
+          className={`${tbBtn} !bg-success hover:!bg-success-hover`}
           onClick={handleExport}
           disabled={project.clips.length === 0 || exporting}
         >
