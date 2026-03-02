@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+sqlalchemy[asyncio]
+aiosqlite
+pydantic
+cryptography
+soundfile
+numpy
+httpx
+python-multipart
+mlx
+mlx-audio
+faster-whisper
+huggingface_hub

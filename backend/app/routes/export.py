@@ -162,91 +162,173 @@ async def export_project(request: Request):
                         target_h = ph if ph % 2 == 0 else ph + 1
                 print(f"[export] Target resolution: {target_w}x{target_h}")
 
-        filters = []
-        v_labels = []
-        a_labels = []
+        # Check if single video clip needs no transforms (stream-copy path)
+        single_video = len(video_clips) == 1
+        single_video_passthrough = False
+        if single_video:
+            c = video_clips[0]
+            if c.get("speed", 1) == 1 and c.get("scale", 1) == 1 and c.get("rotation", 0) == 0:
+                single_video_passthrough = True
 
-        for i, c in enumerate(video_clips):
-            idx = input_map[c["mediaId"]]
+        if single_video_passthrough:
+            # Fast path: copy video stream directly, no re-encoding
+            c = video_clips[0]
+            vid_input = media_files.get(c["mediaId"])
             in_pt = c.get("inPoint", 0)
-            out_pt = c.get("outPoint", in_pt + c.get("duration", 0))
-            speed = c.get("speed", 1)
-            scale = c.get("scale", 1)
-            rotation = c.get("rotation", 0)
-            label = f"v{i}"
+            dur = c.get("duration", 0)
 
-            vf = f"[{idx}:v]trim={in_pt}:{out_pt},setpts=PTS-STARTPTS"
-            if speed != 1:
-                vf += f",setpts={1.0/speed}*PTS"
-            if scale != 1:
-                vf += f",scale=iw*{scale}:ih*{scale}"
-            if rotation != 0:
-                vf += f",rotate={rotation}*PI/180:fillcolor=black@0"
-            # normalize all clips to same resolution/format for concat
-            vf += f",scale={target_w}:{target_h}:force_original_aspect_ratio=decrease"
-            vf += f",pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black"
-            vf += ",format=yuv420p,setsar=1"
-            vf += f"[{label}]"
-            filters.append(vf)
-            v_labels.append(f"[{label}]")
+            cmd = ["ffmpeg", "-y"]
+            cmd.extend(["-ss", str(in_pt), "-i", vid_input, "-t", str(dur)])
 
-        for i, c in enumerate(audio_clips):
-            idx = input_map[c["mediaId"]]
-            in_pt = c.get("inPoint", 0)
-            out_pt = c.get("outPoint", in_pt + c.get("duration", 0))
-            speed = c.get("speed", 1)
-            volume = c.get("volume", 1)
-            label = f"a{i}"
+            # Add audio inputs
+            audio_filters = []
+            audio_input_indices = {}
+            for ai, ac in enumerate(audio_clips):
+                amid = ac["mediaId"]
+                apath = media_files.get(amid)
+                if not apath:
+                    continue
+                input_idx = len(cmd) // 2  # rough, recalculate below
+                cmd.extend(["-i", apath])
 
-            af = f"[{idx}:a]atrim={in_pt}:{out_pt},asetpts=PTS-STARTPTS"
-            if speed != 1:
-                s = speed
-                tempos = []
-                while s > 2.0:
-                    tempos.append("atempo=2.0")
-                    s /= 2.0
-                while s < 0.5:
-                    tempos.append("atempo=0.5")
-                    s *= 2.0
-                tempos.append(f"atempo={s}")
-                af += "," + ",".join(tempos)
-            if volume != 1:
-                af += f",volume={volume}"
-            af += f"[{label}]"
-            filters.append(af)
-            a_labels.append(f"[{label}]")
+            # Rebuild to get correct input indices
+            cmd = ["ffmpeg", "-y", "-ss", str(in_pt), "-i", vid_input, "-t", str(dur)]
+            a_input_offset = 1
+            a_labels = []
+            a_filters = []
+            for ai, ac in enumerate(audio_clips):
+                amid = ac["mediaId"]
+                apath = media_files.get(amid)
+                if not apath:
+                    continue
+                cmd.extend(["-i", apath])
+                a_in_pt = ac.get("inPoint", 0)
+                a_out_pt = ac.get("outPoint", a_in_pt + ac.get("duration", 0))
+                a_speed = ac.get("speed", 1)
+                a_volume = ac.get("volume", 1)
+                a_idx = a_input_offset + ai
+                label = f"a{ai}"
+                af = f"[{a_idx}:a]atrim={a_in_pt}:{a_out_pt},asetpts=PTS-STARTPTS"
+                if a_speed != 1:
+                    s = a_speed
+                    tempos = []
+                    while s > 2.0:
+                        tempos.append("atempo=2.0")
+                        s /= 2.0
+                    while s < 0.5:
+                        tempos.append("atempo=0.5")
+                        s *= 2.0
+                    tempos.append(f"atempo={s}")
+                    af += "," + ",".join(tempos)
+                if a_volume != 1:
+                    af += f",volume={a_volume}"
+                af += f"[{label}]"
+                a_filters.append(af)
+                a_labels.append(f"[{label}]")
 
-        maps = []
-        if v_labels:
-            if len(v_labels) == 1:
-                for fi in range(len(filters)):
-                    if filters[fi].endswith("[v0]"):
-                        filters[fi] = filters[fi][:-4] + "[outv]"
-                        break
-            else:
-                filters.append(f"{''.join(v_labels)}concat=n={len(v_labels)}:v=1:a=0[outv]")
-            maps.extend(["-map", "[outv]"])
+            cmd.extend(["-c:v", "copy", "-map", "0:v:0"])
 
-        if a_labels:
-            if len(a_labels) == 1:
-                for fi in range(len(filters)):
-                    if filters[fi].endswith("[a0]"):
-                        filters[fi] = filters[fi][:-4] + "[outa]"
-                        break
-            else:
-                filters.append(f"{''.join(a_labels)}concat=n={len(a_labels)}:v=0:a=1[outa]")
-            maps.extend(["-map", "[outa]"])
+            if a_labels:
+                if len(a_labels) == 1:
+                    a_filters[0] = a_filters[0].replace("[a0]", "[outa]")
+                else:
+                    a_filters.append(f"{''.join(a_labels)}concat=n={len(a_labels)}:v=0:a=1[outa]")
+                cmd.extend(["-filter_complex", ";".join(a_filters)])
+                cmd.extend(["-map", "[outa]"])
+            elif not audio_clips:
+                # No audio at all — take audio from video if it has one
+                cmd.extend(["-map", "0:a?"])
 
-        filter_complex = ";".join(filters)
+            cmd.extend(["-shortest"])
+            cmd.append(str(output_path))
+            print(f"[export] Single video passthrough (stream copy)")
+        else:
+            filters = []
+            v_labels = []
+            a_labels = []
 
-        cmd = ["ffmpeg", "-y"]
-        for inp in inputs:
-            cmd.extend(["-i", inp])
-        cmd.extend(["-filter_complex", filter_complex])
-        cmd.extend(maps)
-        if not v_labels:
-            cmd.extend(["-vn"])
-        cmd.append(str(output_path))
+            for i, c in enumerate(video_clips):
+                idx = input_map[c["mediaId"]]
+                in_pt = c.get("inPoint", 0)
+                out_pt = c.get("outPoint", in_pt + c.get("duration", 0))
+                speed = c.get("speed", 1)
+                scale = c.get("scale", 1)
+                rotation = c.get("rotation", 0)
+                label = f"v{i}"
+
+                vf = f"[{idx}:v]trim={in_pt}:{out_pt},setpts=PTS-STARTPTS"
+                if speed != 1:
+                    vf += f",setpts={1.0/speed}*PTS"
+                if scale != 1:
+                    vf += f",scale=iw*{scale}:ih*{scale}"
+                if rotation != 0:
+                    vf += f",rotate={rotation}*PI/180:fillcolor=black@0"
+                if not single_video:
+                    # normalize all clips to same resolution/format for concat
+                    vf += f",scale={target_w}:{target_h}:force_original_aspect_ratio=decrease"
+                    vf += f",pad={target_w}:{target_h}:(ow-iw)/2:(oh-ih)/2:black"
+                    vf += ",format=yuv420p,setsar=1"
+                vf += f"[{label}]"
+                filters.append(vf)
+                v_labels.append(f"[{label}]")
+
+            for i, c in enumerate(audio_clips):
+                idx = input_map[c["mediaId"]]
+                in_pt = c.get("inPoint", 0)
+                out_pt = c.get("outPoint", in_pt + c.get("duration", 0))
+                speed = c.get("speed", 1)
+                volume = c.get("volume", 1)
+                label = f"a{i}"
+
+                af = f"[{idx}:a]atrim={in_pt}:{out_pt},asetpts=PTS-STARTPTS"
+                if speed != 1:
+                    s = speed
+                    tempos = []
+                    while s > 2.0:
+                        tempos.append("atempo=2.0")
+                        s /= 2.0
+                    while s < 0.5:
+                        tempos.append("atempo=0.5")
+                        s *= 2.0
+                    tempos.append(f"atempo={s}")
+                    af += "," + ",".join(tempos)
+                if volume != 1:
+                    af += f",volume={volume}"
+                af += f"[{label}]"
+                filters.append(af)
+                a_labels.append(f"[{label}]")
+
+            maps = []
+            if v_labels:
+                if len(v_labels) == 1:
+                    for fi in range(len(filters)):
+                        if filters[fi].endswith("[v0]"):
+                            filters[fi] = filters[fi][:-4] + "[outv]"
+                            break
+                else:
+                    filters.append(f"{''.join(v_labels)}concat=n={len(v_labels)}:v=1:a=0[outv]")
+                maps.extend(["-map", "[outv]"])
+
+            if a_labels:
+                if len(a_labels) == 1:
+                    for fi in range(len(filters)):
+                        if filters[fi].endswith("[a0]"):
+                            filters[fi] = filters[fi][:-4] + "[outa]"
+                            break
+                else:
+                    filters.append(f"{''.join(a_labels)}concat=n={len(a_labels)}:v=0:a=1[outa]")
+                maps.extend(["-map", "[outa]"])
+
+            filter_complex = ";".join(filters)
+
+            cmd = ["ffmpeg", "-y"]
+            for inp in inputs:
+                cmd.extend(["-i", inp])
+            cmd.extend(["-filter_complex", filter_complex])
+            cmd.extend(maps)
+            if not v_labels:
+                cmd.extend(["-vn"])
+            cmd.append(str(output_path))
 
         print(f"[export] Running: {' '.join(cmd)}")
         result = subprocess.run(cmd, capture_output=True, timeout=300)
