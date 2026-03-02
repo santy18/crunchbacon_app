@@ -1,10 +1,7 @@
-from pathlib import Path
-
 from cryptography.fernet import Fernet
 
-from .config import DATA_DIR
+from .config import ENCRYPTION_KEY_PATH
 
-_KEY_PATH = DATA_DIR / ".encryption_key"
 _fernet: Fernet | None = None
 
 
@@ -13,11 +10,11 @@ def _get_fernet() -> Fernet:
     if _fernet is not None:
         return _fernet
 
-    if _KEY_PATH.exists():
-        key = _KEY_PATH.read_bytes().strip()
+    if ENCRYPTION_KEY_PATH.exists():
+        key = ENCRYPTION_KEY_PATH.read_bytes().strip()
     else:
         key = Fernet.generate_key()
-        _KEY_PATH.write_bytes(key)
+        ENCRYPTION_KEY_PATH.write_bytes(key)
     _fernet = Fernet(key)
     return _fernet
 
