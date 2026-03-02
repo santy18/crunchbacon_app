@@ -5,8 +5,12 @@ const API = ''
 function SocialAccountCard({ platform, onRefresh }) {
   const [clientKey, setClientKey] = useState('')
   const [clientSecret, setClientSecret] = useState('')
+  const [redirectBase, setRedirectBase] = useState('')
+  const [scopes, setScopes] = useState('')
   const [savedKey, setSavedKey] = useState(null)
   const [savedSecret, setSavedSecret] = useState(null)
+  const [savedRedirect, setSavedRedirect] = useState(null)
+  const [savedScopes, setSavedScopes] = useState(null)
   const [saving, setSaving] = useState(false)
   const [connecting, setConnecting] = useState(false)
 
@@ -21,36 +25,55 @@ function SocialAccountCard({ platform, onRefresh }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => d && setSavedSecret(d.masked))
       .catch(() => {})
+
+    fetch(`${API}/settings/encrypted/${platform}_redirect_base`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setSavedRedirect(d.value || d.masked))
+      .catch(() => {})
+
+    fetch(`${API}/settings/encrypted/${platform}_scopes`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setSavedScopes(d.value || d.masked))
+      .catch(() => {})
   }, [platform])
 
   const handleSave = async () => {
     setSaving(true)
     try {
       if (clientKey.trim()) {
-        const res = await fetch(`${API}/settings/encrypted/${platform}_client_key`, {
+        await fetch(`${API}/settings/encrypted/${platform}_client_key`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: clientKey.trim() }),
         })
-        if (res.ok) {
-          const data = await res.json()
-          setSavedKey(data.masked)
-          setClientKey('')
-        }
       }
       if (clientSecret.trim()) {
-        const res = await fetch(`${API}/settings/encrypted/${platform}_client_secret`, {
+        await fetch(`${API}/settings/encrypted/${platform}_client_secret`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ value: clientSecret.trim() }),
         })
-        if (res.ok) {
-          const data = await res.json()
-          setSavedSecret(data.masked)
-          setClientSecret('')
-        }
       }
+      if (redirectBase.trim()) {
+        await fetch(`${API}/settings/encrypted/${platform}_redirect_base`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: redirectBase.trim().replace(/\/$/, '') }),
+        })
+      }
+      if (scopes.trim()) {
+        await fetch(`${API}/settings/encrypted/${platform}_scopes`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: scopes.trim() }),
+        })
+      }
+      setClientKey('')
+      setClientSecret('')
+      setRedirectBase('')
+      setScopes('')
       onRefresh()
+      window.location.reload()
     } catch (e) {
       console.error('Save failed:', e)
     } finally {
@@ -113,10 +136,41 @@ function SocialAccountCard({ platform, onRefresh }) {
           )}
         </div>
 
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Redirect Base URL (e.g. ngrok)</label>
+          <input
+            type="text"
+            value={redirectBase}
+            onChange={(e) => setRedirectBase(e.target.value)}
+            placeholder={savedRedirect || 'https://your-ngrok.ngrok-free.app'}
+            className="w-full bg-neutral-800 border border-neutral-600 rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-bacon-pink"
+          />
+          {savedRedirect && !redirectBase && (
+            <p className="text-xs text-gray-500 mt-1">Active: {savedRedirect}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">OAuth Scopes (comma or space separated)</label>
+          <input
+            type="text"
+            value={scopes}
+            onChange={(e) => setScopes(e.target.value)}
+            placeholder={savedScopes || 'video.publish'}
+            className="w-full bg-neutral-800 border border-neutral-600 rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-bacon-pink"
+          />
+          {savedScopes && !scopes && (
+            <p className="text-xs text-gray-500 mt-1">Active: {savedScopes}</p>
+          )}
+          <p className="text-[10px] text-gray-500 mt-1">
+            Check your TikTok Dev Portal - Sandbox - Approved Scopes.
+          </p>
+        </div>
+
         <div className="flex gap-2 pt-2">
           <button
             onClick={handleSave}
-            disabled={saving || (!clientKey.trim() && !clientSecret.trim())}
+            disabled={saving || (!clientKey.trim() && !clientSecret.trim() && !redirectBase.trim() && !scopes.trim())}
             className="px-4 py-2 text-sm rounded bg-bacon-pink hover:brightness-110 text-white disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : 'Save Credentials'}
@@ -146,6 +200,8 @@ export default function Settings() {
 
   useEffect(() => {
     loadPlatforms()
+    const interval = setInterval(loadPlatforms, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -153,10 +209,20 @@ export default function Settings() {
       <h1 className="text-3xl font-bold mb-2">Settings</h1>
 
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-1">Social Accounts</h2>
-        <p className="text-gray-400 text-sm mb-4">
-          Connect your social media accounts to publish videos directly from the editor.
-        </p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-1">Social Accounts</h2>
+            <p className="text-gray-400 text-sm">
+              Connect your social media accounts to publish videos directly from the editor.
+            </p>
+          </div>
+          <button
+            onClick={loadPlatforms}
+            className="px-3 py-1.5 text-xs bg-neutral-800 hover:bg-neutral-700 text-gray-300 rounded border border-neutral-700"
+          >
+            Refresh Status
+          </button>
+        </div>
 
         <div className="space-y-4">
           {platforms.map((p) => (

@@ -20,6 +20,7 @@ export default defineConfig({
       '/settings': 'http://localhost:8000',
       '/generations': 'http://localhost:8000',
       '/audio-library': 'http://localhost:8000',
+      '/social': 'http://localhost:8000',
     },
   },
 })
