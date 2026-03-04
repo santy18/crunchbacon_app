@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,13 +15,10 @@ router = APIRouter()
 # --- Existing endpoint (backward compat) ---
 
 @router.get("/voices")
-async def list_voices():
-    if not VOICES_DIR.is_dir():
-        return []
-    return sorted(
-        f.stem for f in VOICES_DIR.iterdir()
-        if f.suffix.lower() in {".wav", ".mp3", ".flac", ".ogg"}
-    )
+async def list_voices(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Voice).order_by(Voice.name))
+    voices = result.scalars().all()
+    return [v.name for v in voices]
 
 
 # --- Upload / Delete by name ---
@@ -50,17 +49,22 @@ async def create_voice_upload(
 
 @router.delete("/voices/{name}", status_code=204)
 async def delete_voice_by_name(name: str, db: AsyncSession = Depends(get_db)):
-    # delete file
-    wav = VOICES_DIR / f"{name}.wav"
-    if wav.exists():
-        wav.unlink()
-
     # delete DB record
     result = await db.execute(select(Voice).where(Voice.name == name))
     voice = result.scalar_one_or_none()
     if voice:
+        # delete file
+        path = Path(voice.file_path)
+        if path.exists():
+            path.unlink()
+        
         await db.delete(voice)
         await db.commit()
+    else:
+        # Fallback to VOICES_DIR for backward compatibility
+        wav = VOICES_DIR / f"{name}.wav"
+        if wav.exists():
+            wav.unlink()
 
 
 # --- DB CRUD ---

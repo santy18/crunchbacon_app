@@ -18,11 +18,20 @@ router = APIRouter()
 async def stream_speech(ws: WebSocket, voice: str = "clone", delay: int = 10, sample_rate: int = 16000):
     await ws.accept()
 
-    ref_audio = VOICES_DIR / f"{voice}.wav"
-    if not ref_audio.is_file():
-        await ws.send_json({"type": "error", "detail": f"Voice '{voice}' not found"})
-        await ws.close(code=1008, reason="Voice not found")
-        return
+    # Fetch voice from DB
+    async with async_session() as db:
+        result = await db.execute(select(Voice).where(Voice.name == voice))
+        voice_row = result.scalar_one_or_none()
+
+    if not voice_row or not Path(voice_row.file_path).is_file():
+        # Fallback to VOICES_DIR for backward compatibility
+        ref_audio = VOICES_DIR / f"{voice}.wav"
+        if not ref_audio.is_file():
+            await ws.send_json({"type": "error", "detail": f"Voice '{voice}' not found"})
+            await ws.close(code=1008, reason="Voice not found")
+            return
+    else:
+        ref_audio = Path(voice_row.file_path)
 
     tts = ml_models.get("tts")
     stt = ml_models.get("stt")

@@ -30,14 +30,21 @@ async def _log_generation(text: str, voice_name: str, ref_text: str | None):
 
 
 @router.post("/generate")
-async def generate_audio(req: TTSRequest):
+async def generate_audio(req: TTSRequest, db: AsyncSession = Depends(get_db)):
     model = ml_models.get("tts")
     if not model:
         raise HTTPException(status_code=503, detail="Model is currently unavailable.")
 
-    ref_audio = VOICES_DIR / f"{req.voice}.wav"
-    if not ref_audio.is_file():
-        raise HTTPException(status_code=400, detail=f"Voice '{req.voice}' not found.")
+    # Fetch voice from DB
+    result = await db.execute(select(Voice).where(Voice.name == req.voice))
+    voice = result.scalar_one_or_none()
+    if not voice or not Path(voice.file_path).is_file():
+        # Fallback to VOICES_DIR for backward compatibility
+        ref_audio = VOICES_DIR / f"{req.voice}.wav"
+        if not ref_audio.is_file():
+            raise HTTPException(status_code=400, detail=f"Voice '{req.voice}' not found.")
+    else:
+        ref_audio = Path(voice.file_path)
 
     try:
         results = list(model.generate(
@@ -74,14 +81,22 @@ async def generate_voiceover(
     text: str = Form(...),
     voice: str = Form(...),
     ref_text: str = Form(None),
+    db: AsyncSession = Depends(get_db),
 ):
     model = ml_models.get("tts")
     if not model:
         raise HTTPException(status_code=503, detail="Model is currently unavailable.")
 
-    ref_audio = VOICES_DIR / f"{voice}.wav"
-    if not ref_audio.is_file():
-        raise HTTPException(status_code=400, detail=f"Voice '{voice}' not found.")
+    # Fetch voice from DB
+    result = await db.execute(select(Voice).where(Voice.name == voice))
+    voice_row = result.scalar_one_or_none()
+    if not voice_row or not Path(voice_row.file_path).is_file():
+        # Fallback to VOICES_DIR for backward compatibility
+        ref_audio = VOICES_DIR / f"{voice}.wav"
+        if not ref_audio.is_file():
+            raise HTTPException(status_code=400, detail=f"Voice '{voice}' not found.")
+    else:
+        ref_audio = Path(voice_row.file_path)
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp = Path(tmp_dir)
